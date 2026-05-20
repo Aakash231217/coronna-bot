@@ -218,7 +218,7 @@ export default async function Home() {
             Choose what fits you right
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Start free, scale when you're ready. No hidden fees.
+            Start free, scale when you&apos;re ready. No hidden fees.
           </p>
         </div>
 
