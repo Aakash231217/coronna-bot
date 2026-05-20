@@ -78,8 +78,26 @@ export const useChatBot = () => {
     })
   }
 
+  const speakWithBrowser = (text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    try {
+      window.speechSynthesis.cancel()
+      const utter = new SpeechSynthesisUtterance(text)
+      utter.lang = 'en-US'
+      utter.rate = 1
+      utter.pitch = 1
+      utter.onstart = () => setSpeaking(true)
+      utter.onend = () => setSpeaking(false)
+      utter.onerror = () => setSpeaking(false)
+      window.speechSynthesis.speak(utter)
+    } catch {
+      setSpeaking(false)
+    }
+  }
+
   const onSpeakAssistantReply = async (message?: string | null) => {
     if (!voiceEnabled || !message) return
+    const cleaned = message.replace('(complete)', '').trim()
 
     try {
       const response = await fetch('/api/voice', {
@@ -87,18 +105,31 @@ export const useChatBot = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          text: message.replace('(complete)', '').trim(),
-        }),
+        body: JSON.stringify({ text: cleaned }),
       })
 
-      if (!response.ok || response.status === 204) return
+      if (!response.ok) {
+        console.warn(
+          '[voice] /api/voice failed',
+          response.status,
+          '— falling back to browser TTS'
+        )
+        speakWithBrowser(cleaned)
+        return
+      }
+
+      if (response.status === 204) {
+        console.warn('[voice] ELEVENLABS_API_KEY not configured on server — using browser TTS')
+        speakWithBrowser(cleaned)
+        return
+      }
 
       const audioBlob = await response.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
 
       audioRef.current?.pause()
       const audio = new Audio(audioUrl)
+      audio.preload = 'auto'
       audioRef.current = audio
       setSpeaking(true)
 
@@ -111,8 +142,17 @@ export const useChatBot = () => {
         setSpeaking(false)
       }
 
-      await audio.play()
+      try {
+        await audio.play()
+      } catch (playError) {
+        console.warn(
+          '[voice] Browser blocked autoplay. The next message after a user click should play.',
+          playError
+        )
+        setSpeaking(false)
+      }
     } catch (error) {
+      console.error('[voice] error', error)
       setSpeaking(false)
     }
   }
