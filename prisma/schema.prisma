@@ -76,9 +76,12 @@ model Verification {
 }
 
 model Domain {
-  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name String
-  icon String
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  icon          String
+  description   String?
+  knowledgeBase String?
+  knowledgeBaseUpdatedAt DateTime?
 
   chatBot         ChatBot?
   helpdesk        HelpDesk[]

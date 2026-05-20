@@ -4,6 +4,7 @@ import { useSettings } from '@/hooks/settings/use-settings'
 import React from 'react'
 import { DomainUpdate } from './domain-update'
 import CodeSnippet from './code-snippet'
+import RescanDomain from './rescan-domain'
 import PremiumBadge from '@/icons/premium-badge'
 import EditChatbotIcon from './edit-chatbot-icon'
 import dynamic from 'next/dynamic'
@@ -51,6 +52,7 @@ const SettingsForm = ({ id, name, chatBot, plan }: Props) => {
           register={register}
           errors={errors}
         />
+        <RescanDomain domainId={id} />
         <CodeSnippet id={id} />
       </div>
       <div className="flex flex-col gap-3 mt-5">

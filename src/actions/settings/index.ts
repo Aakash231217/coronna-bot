@@ -1,6 +1,42 @@
 'use server'
 import { client } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/current-user'
+import { scrapeDomain } from '@/lib/scrape-domain'
+
+export const onRescanDomain = async (domainId: string) => {
+  try {
+    const domain = await client.domain.findUnique({
+      where: { id: domainId },
+      select: { name: true },
+    })
+    if (!domain) return { status: 404, message: 'Domain not found' }
+
+    const scraped = await scrapeDomain(domain.name)
+    if (!scraped) {
+      return {
+        status: 400,
+        message: 'Could not reach this website. Check the URL.',
+      }
+    }
+
+    await client.domain.update({
+      where: { id: domainId },
+      data: {
+        description: scraped.description,
+        knowledgeBase: scraped.knowledgeBase,
+        knowledgeBaseUpdatedAt: new Date(),
+      },
+    })
+
+    return {
+      status: 200,
+      message: 'Website scanned and knowledge base updated.',
+    }
+  } catch (error) {
+    console.log(error)
+    return { status: 500, message: 'Unable to scan website.' }
+  }
+}
 
 export const onIntegrateDomain = async (domain: string, icon: string) => {
   const user = await getCurrentUser()
@@ -43,6 +79,8 @@ export const onIntegrateDomain = async (domain: string, icon: string) => {
         (subscription?.subscription?.plan == 'ULTIMATE' &&
           subscription._count.domains < 10)
       ) {
+        const scraped = await scrapeDomain(domain)
+
         const newDomain = await client.user.update({
           where: {
             id: user.id,
@@ -52,6 +90,9 @@ export const onIntegrateDomain = async (domain: string, icon: string) => {
               create: {
                 name: domain,
                 icon,
+                description: scraped?.description || null,
+                knowledgeBase: scraped?.knowledgeBase || null,
+                knowledgeBaseUpdatedAt: scraped ? new Date() : null,
                 chatBot: {
                   create: {
                     welcomeMessage: 'Hey there, have  a question? Text us here',
@@ -63,7 +104,12 @@ export const onIntegrateDomain = async (domain: string, icon: string) => {
         })
 
         if (newDomain) {
-          return { status: 200, message: 'Domain successfully added' }
+          return {
+            status: 200,
+            message: scraped
+              ? 'Domain added and website scanned for knowledge base'
+              : 'Domain added (could not scan website automatically — try Re-scan later)',
+          }
         }
       }
       return {

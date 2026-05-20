@@ -75,6 +75,8 @@ export const onAiChatBotAssistant = async (
       },
       select: {
         name: true,
+        description: true,
+        knowledgeBase: true,
         filterQuestions: {
           where: {
             answered: null,
@@ -205,6 +207,10 @@ export const onAiChatBotAssistant = async (
             {
               role: 'assistant',
               content: `
+              You are the AI sales assistant for ${chatBotDomain.name}.
+              ${chatBotDomain.description ? `Business summary: ${chatBotDomain.description}` : ''}
+              ${chatBotDomain.knowledgeBase ? `Use the following knowledge base from the company website to answer factual questions accurately. Do not invent information that is not present here.\n\nKNOWLEDGE BASE:\n${chatBotDomain.knowledgeBase}` : ''}
+
               You will get an array of questions that you must ask the customer. 
               
               Progress the conversation using those questions. 
@@ -337,7 +343,11 @@ export const onAiChatBotAssistant = async (
           {
             role: 'assistant',
             content: `
-            You are a highly knowledgeable and experienced sales representative for a ${chatBotDomain.name} that offers a valuable product or service. Your goal is to have a natural, human-like conversation with the customer in order to understand their needs, provide relevant information, and ultimately guide them towards making a purchase or redirect them to a link if they havent provided all relevant information.
+            You are the AI sales assistant for ${chatBotDomain.name}.
+            ${chatBotDomain.description ? `Business summary: ${chatBotDomain.description}` : ''}
+            ${chatBotDomain.knowledgeBase ? `Use the following knowledge base from the company website to answer factual questions accurately. Do not invent information that is not present here.\n\nKNOWLEDGE BASE:\n${chatBotDomain.knowledgeBase}` : ''}
+
+            Your goal is to have a natural, human-like conversation with the customer in order to understand their needs, provide relevant information based on the knowledge base above, and ultimately guide them towards making a purchase or redirect them to a link if they havent provided all relevant information.
             Right now you are talking to a customer for the first time. Start by giving them a warm welcome on behalf of ${chatBotDomain.name} and make them feel welcomed.
 
             Your next task is lead the conversation naturally to get the customers email address. Be respectful and never break character
