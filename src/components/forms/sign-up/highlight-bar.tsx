@@ -3,7 +3,7 @@ import { useAuthContextHook } from '@/context/use-auth-context'
 import { cn } from '@/lib/utils'
 import React from 'react'
 
-const steps = ['Account type', 'Your details', 'Confirm']
+const steps = ['Account type', 'Your details', 'Business info']
 
 const HighLightBar = () => {
   const { currentStep } = useAuthContextHook()

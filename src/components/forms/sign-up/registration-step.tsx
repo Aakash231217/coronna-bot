@@ -13,6 +13,11 @@ const DetailForm = dynamic(() => import('./account-details-form'), {
   loading: DynamicLoader,
 })
 
+const BusinessForm = dynamic(() => import('./business-details-form'), {
+  ssr: false,
+  loading: DynamicLoader,
+})
+
 const OTPForm = dynamic(() => import('./otp-form'), {
   ssr: false,
   loading: DynamicLoader,
@@ -50,9 +55,9 @@ const RegistrationFormStep = (props: Props) => {
       )
     case 3:
       return (
-        <OTPForm
-          onOTP={onOTP}
-          setOTP={setOnOTP}
+        <BusinessForm
+          errors={errors}
+          register={register}
         />
       )
   }

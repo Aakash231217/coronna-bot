@@ -7,6 +7,10 @@ export type UserRegistrationProps = {
   confirmEmail: string
   password: string
   confirmPassword: string
+  phone?: string
+  businessEmail?: string
+  companyName?: string
+  website?: string
   otp?: string
 }
 
@@ -25,6 +29,19 @@ export const UserRegistrationSchema: ZodType<UserRegistrationProps> = z
         message: 'Your password can not be longer then 64 characters long',
       }),
     confirmPassword: z.string(),
+    phone: z
+      .string()
+      .min(7, { message: 'Phone number looks too short' })
+      .max(20, { message: 'Phone number looks too long' })
+      .optional()
+      .or(z.literal('')),
+    businessEmail: z
+      .string()
+      .email({ message: 'Enter a valid business email' })
+      .optional()
+      .or(z.literal('')),
+    companyName: z.string().optional().or(z.literal('')),
+    website: z.string().optional().or(z.literal('')),
     otp: z.string().optional(),
   })
   .refine((schema) => schema.password === schema.confirmPassword, {

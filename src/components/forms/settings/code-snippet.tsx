@@ -37,6 +37,43 @@ const CodeSnippet = ({ id }: Props) => {
     iframe.classList.add('chat-frame');
     document.body.appendChild(iframe);
 
+    // Behavior tracker — auto-open bot when user looks stuck
+    let lastActivity = Date.now();
+    let proactiveSent = false;
+    let exitFired = false;
+    const resetActivity = () => { lastActivity = Date.now(); };
+    ['mousemove','scroll','keydown','click','touchstart'].forEach((ev) =>
+      window.addEventListener(ev, resetActivity, { passive: true })
+    );
+
+    const sendProactive = (reason) => {
+      if (proactiveSent) return;
+      proactiveSent = true;
+      try {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({
+            type: 'bot:proactive',
+            reason: reason,
+            path: window.location.pathname,
+            title: document.title,
+          }),
+          "${baseUrl}/"
+        );
+      } catch (e) {}
+    };
+
+    setInterval(() => {
+      if (proactiveSent) return;
+      if (Date.now() - lastActivity > 25000) sendProactive('idle');
+    }, 5000);
+
+    document.addEventListener('mouseleave', (e) => {
+      if (e.clientY < 5 && !exitFired) {
+        exitFired = true;
+        sendProactive('exit-intent');
+      }
+    });
+
     window.addEventListener("message", (e) => {
       if (e.origin !== "${baseUrl}") return null;
       let dimensions = JSON.parse(e.data);

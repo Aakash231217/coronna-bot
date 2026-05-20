@@ -23,6 +23,22 @@ export const auth = betterAuth({
         required: false,
         defaultValue: 'owner',
       },
+      phone: {
+        type: 'string',
+        required: false,
+      },
+      businessEmail: {
+        type: 'string',
+        required: false,
+      },
+      companyName: {
+        type: 'string',
+        required: false,
+      },
+      website: {
+        type: 'string',
+        required: false,
+      },
     },
   },
   advanced: {

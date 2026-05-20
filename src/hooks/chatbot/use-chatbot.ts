@@ -189,14 +189,41 @@ export const useChatBot = () => {
   }
 
   useEffect(() => {
-    window.addEventListener('message', (e) => {
-      console.log(e.data)
-      const botid = e.data
-      if (limitRequest < 1 && typeof botid == 'string') {
-        onGetDomainChatBot(botid)
+    const handler = (e: MessageEvent) => {
+      const data = e.data
+      // legacy: plain string is the bot id
+      if (limitRequest < 1 && typeof data === 'string') {
+        onGetDomainChatBot(data)
         limitRequest++
+        return
       }
-    })
+      // proactive trigger from parent page
+      if (typeof data === 'string' && data.startsWith('{')) {
+        try {
+          const payload = JSON.parse(data)
+          if (payload?.type === 'bot:proactive') {
+            const reason: string = payload.reason || 'idle'
+            const path: string = payload.path || ''
+            const proactiveMsg =
+              reason === 'exit-intent'
+                ? `Before you go — is there anything I can help you with on ${
+                    path || 'this page'
+                  }?`
+                : `Looks like you might be looking for something on ${
+                    path || 'this page'
+                  }. Want me to help find it?`
+            setBotOpened(true)
+            setOnChats((prev) => {
+              if (prev.some((m) => m.content === proactiveMsg)) return prev
+              return [...prev, { role: 'assistant', content: proactiveMsg }]
+            })
+            onSpeakAssistantReply(proactiveMsg)
+          }
+        } catch {}
+      }
+    }
+    window.addEventListener('message', handler)
+    return () => window.removeEventListener('message', handler)
   }, [])
 
   const onStartChatting = handleSubmit(async (values) => {

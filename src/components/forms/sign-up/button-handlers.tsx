@@ -42,11 +42,12 @@ const ButtonHandler = (props: Props) => {
     return (
       <div className="w-full flex flex-col gap-3 items-center">
         <Button
-          type="submit"
+          type="button"
           className="w-full"
           disabled={!(isName && isEmail && isPassword)}
+          onClick={() => setCurrentStep((prev: number) => prev + 1)}
         >
-          Create an account
+          Continue
         </Button>
         <p>
           Already have an account?{' '}
@@ -64,7 +65,7 @@ const ButtonHandler = (props: Props) => {
   return (
     <div className="w-full flex flex-col gap-3 items-center">
       <Button
-        type="submit"
+        type="button"
         className="w-full"
         onClick={() => setCurrentStep((prev: number) => prev + 1)}
       >

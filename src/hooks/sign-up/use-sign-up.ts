@@ -39,7 +39,12 @@ export const useSignUpForm = () => {
           password: values.password,
           name: values.fullname,
           callbackURL: '/dashboard',
-        })
+          // additional Better Auth user fields
+          phone: values.phone || undefined,
+          businessEmail: values.businessEmail || undefined,
+          companyName: values.companyName || undefined,
+          website: values.website || undefined,
+        } as any)
 
         if (error) {
           toast({ title: 'Error', description: error.message })

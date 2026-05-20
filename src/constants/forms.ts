@@ -46,6 +46,37 @@ export const USER_REGISTRATION_FORM: UserRegistrationProps[] = [
   },
 ]
 
+export const BUSINESS_DETAILS_FORM: UserRegistrationProps[] = [
+  {
+    id: 'b1',
+    inputType: 'input',
+    placeholder: 'Company name',
+    name: 'companyName',
+    type: 'text',
+  },
+  {
+    id: 'b2',
+    inputType: 'input',
+    placeholder: 'Business email',
+    name: 'businessEmail',
+    type: 'email',
+  },
+  {
+    id: 'b3',
+    inputType: 'input',
+    placeholder: 'Phone number',
+    name: 'phone',
+    type: 'text',
+  },
+  {
+    id: 'b4',
+    inputType: 'input',
+    placeholder: 'Website (optional)',
+    name: 'website',
+    type: 'text',
+  },
+]
+
 export const USER_LOGIN_FORM: UserRegistrationProps[] = [
   {
     id: '1',
