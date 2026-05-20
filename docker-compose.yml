@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: corinna-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: corinna
+      POSTGRES_PASSWORD: corinna
+      POSTGRES_DB: corinna
+    ports:
+      - "5432:5432"
+    volumes:
+      - corinna-pg-data:/var/lib/postgresql/data
+
+volumes:
+  corinna-pg-data:
