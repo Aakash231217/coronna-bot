@@ -74,10 +74,13 @@ export const useCompleteCustomerPayment = (onNext: () => void) => {
     try {
       setProcessing(true)
 
+      const baseUrl = (
+        process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      ).replace(/\/$/, '')
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: 'http://localhost:3000/settings',
+          return_url: `${baseUrl}/settings`,
         },
         redirect: 'if_required',
       })
@@ -179,10 +182,13 @@ export const useCompletePayment = (
     try {
       setProcessing(true)
 
+      const baseUrl = (
+        process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      ).replace(/\/$/, '')
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: 'http://localhost:3000/settings',
+          return_url: `${baseUrl}/settings`,
         },
         redirect: 'if_required',
       })
