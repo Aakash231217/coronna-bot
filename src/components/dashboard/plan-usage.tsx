@@ -14,21 +14,24 @@ export const PlanUsage = ({
   domains,
   clients,
 }: PlanUsageProps) => {
-  console.log(credits)
+  const emailLimit = plan == 'STANDARD' ? 10 : plan == 'PRO' ? 50 : 500
+  const domainLimit = plan == 'STANDARD' ? 1 : plan == 'PRO' ? 2 : 100
+  const clientLimit = plan == 'STANDARD' ? 10 : plan == 'PRO' ? 50 : 500
+
   return (
-    <div className="flex flex-col gap-5 py-5">
+    <div className="mt-6 flex flex-col gap-5">
       <ProgressBar
-        end={plan == 'STANDARD' ? 10 : plan == 'PRO' ? 50 : 500}
-        label="Email Credits"
+        end={emailLimit}
+        label="Email credits"
         credits={credits}
       />
       <ProgressBar
-        end={plan == 'STANDARD' ? 1 : plan == 'PRO' ? 2 : 100}
+        end={domainLimit}
         label="Domains"
         credits={domains}
       />
       <ProgressBar
-        end={plan == 'STANDARD' ? 10 : plan == 'PRO' ? 50 : 500}
+        end={clientLimit}
         label="Contacts"
         credits={clients}
       />

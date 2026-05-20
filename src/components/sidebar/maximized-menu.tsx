@@ -1,6 +1,6 @@
 import { SIDE_BAR_MENU } from '@/constants/menu'
-import { LogOut, Menu, MonitorSmartphone } from 'lucide-react'
-import Image from 'next/image'
+import { Bot, ChevronsLeft, LogOut, MonitorSmartphone } from 'lucide-react'
+import Link from 'next/link'
 import React from 'react'
 import DomainMenu from './domain-menu'
 import MenuItem from './menu-item'
@@ -21,28 +21,32 @@ type Props = {
 
 const MaxMenu = ({ current, domains, onExpand, onSignOut }: Props) => {
   return (
-    <div className="py-3 px-4 flex flex-col h-full">
-      <div className="flex justify-between items-center">
-        <Image
-          src="/images/logo.png"
-          alt="LOGO"
-          sizes="100vw"
-          className="animate-fade-in opacity-0 delay-300 fill-mode-forwards"
-          style={{
-            width: '50%',
-            height: 'auto',
-          }}
-          width={0}
-          height={0}
-        />
-        <Menu
-          className="cursor-pointer animate-fade-in opacity-0 delay-300 fill-mode-forwards"
+    <div className="flex h-full flex-col px-4 py-4">
+      <div className="flex items-center justify-between animate-fade-in opacity-0 delay-300 fill-mode-forwards">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 text-sm font-semibold tracking-tight"
+        >
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-gradient text-white shadow">
+            <Bot className="h-4 w-4" />
+          </span>
+          <span>Corinna AI</span>
+        </Link>
+        <button
+          type="button"
           onClick={onExpand}
-        />
+          className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+          aria-label="Collapse sidebar"
+        >
+          <ChevronsLeft className="h-4 w-4" />
+        </button>
       </div>
-      <div className="animate-fade-in opacity-0 delay-300 fill-mode-forwards flex flex-col justify-between h-full pt-10">
-        <div className="flex flex-col">
-          <p className="text-xs text-gray-500 mb-3">MENU</p>
+
+      <div className="flex h-full flex-col justify-between pt-8 animate-fade-in opacity-0 delay-300 fill-mode-forwards">
+        <div className="flex flex-col gap-1">
+          <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Menu
+          </p>
           {SIDE_BAR_MENU.map((menu, key) => (
             <MenuItem
               size="max"
@@ -53,18 +57,20 @@ const MaxMenu = ({ current, domains, onExpand, onSignOut }: Props) => {
           ))}
           <DomainMenu domains={domains} />
         </div>
-        <div className="flex flex-col">
-          <p className="text-xs text-gray-500 mb-3">OPTIONS</p>
+        <div className="flex flex-col gap-1">
+          <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Options
+          </p>
+          <MenuItem
+            size="max"
+            label="Mobile App"
+            icon={<MonitorSmartphone />}
+          />
           <MenuItem
             size="max"
             label="Sign out"
             icon={<LogOut />}
             onSignOut={onSignOut}
-          />
-          <MenuItem
-            size="max"
-            label="Mobile App"
-            icon={<MonitorSmartphone />}
           />
         </div>
       </div>

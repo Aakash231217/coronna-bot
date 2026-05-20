@@ -29,6 +29,11 @@ const config = {
         grandis: '#FFC989',
         porcelain: '#F1F1F1',
         ironside: '#636363',
+        brand: {
+          DEFAULT: 'hsl(var(--brand))',
+          soft: 'hsl(var(--brand-soft))',
+          foreground: 'hsl(var(--brand-foreground))',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

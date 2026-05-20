@@ -79,19 +79,21 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
   ) => {
     console.log(errors)
     return (
-      <div className="h-[670px] w-[450px] flex flex-col bg-white rounded-xl mr-[80px] border-[1px] overflow-hidden">
-        <div className="flex justify-between px-4 pt-4">
-          <div className="flex gap-2">
-            <Avatar className="w-20 h-20">
-              <AvatarFallback className="bg-transparent">
-                <BotFace3D size={80} />
+      <div className="mr-[80px] flex h-[670px] w-[450px] flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)]">
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-brand-gradient px-5 py-4 text-white">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12 ring-2 ring-white/40">
+              <AvatarFallback className="bg-white/20">
+                <BotFace3D size={40} />
               </AvatarFallback>
             </Avatar>
-            <div className="flex items-start flex-col">
-              <h3 className="text-lg font-bold leading-none">
-                Sales Rep - Web Prodigies
+            <div className="flex flex-col">
+              <h3 className="text-sm font-semibold leading-tight">
+                Corinna AI Sales Rep
               </h3>
-              <p className="text-sm">{domainName.split('.com')[0]}</p>
+              <p className="text-xs text-white/80">
+                {domainName?.split('.com')[0] ?? 'Online'}
+              </p>
               {realtimeMode?.mode && (
                 <RealTimeMode
                   setChats={setChat}
@@ -103,23 +105,17 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
           <button
             type="button"
             onClick={onToggleVoice}
-            className="flex h-10 w-10 items-center justify-center rounded-full border bg-white text-gray-700 shadow-sm transition hover:bg-gray-50"
+            className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
             title={voiceEnabled ? 'Mute voice replies' : 'Enable voice replies'}
           >
             {voiceEnabled ? (
-              <Volume2 className={speaking ? 'text-orange' : ''} />
+              <Volume2
+                className={`h-4 w-4 ${speaking ? 'animate-pulse' : ''}`}
+              />
             ) : (
-              <VolumeX />
+              <VolumeX className="h-4 w-4" />
             )}
           </button>
-          <div className="relative w-16 h-16">
-            <Image
-              src="https://ucarecdn.com/019dd17d-b69b-4dea-a16b-60e0f25de1e9/propuser.png"
-              fill
-              alt="users"
-              objectFit="contain"
-            />
-          </div>
         </div>
         <TabsMenu
           triggers={BOT_TABS_MENU}

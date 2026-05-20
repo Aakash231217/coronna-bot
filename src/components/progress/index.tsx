@@ -1,8 +1,6 @@
 'use client'
 import React from 'react'
 
-import { Progress } from '@/components/ui/progress'
-
 type ProgressBarProps = {
   label: string
   end: number
@@ -10,17 +8,22 @@ type ProgressBarProps = {
 }
 
 export const ProgressBar = ({ label, end, credits }: ProgressBarProps) => {
+  const safeEnd = end > 0 ? end : 1
+  const pct = Math.min(100, Math.max(0, (credits / safeEnd) * 100))
+
   return (
-    <div className="flex flex-col w-full md:w-7/12 gap-1">
-      <h2 className="font-bold">{label}</h2>
-      <div className="flex flex-col">
-        <div className="flex justify-between text-sm">
-          <p>{credits}</p>
-          <p>{end}</p>
-        </div>
-        <Progress
-          value={(credits / end) * 100}
-          className="w-full"
+    <div className="flex w-full flex-col gap-2">
+      <div className="flex items-baseline justify-between">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">{credits}</span> /{' '}
+          {end}
+        </p>
+      </div>
+      <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-brand-gradient transition-[width] duration-500"
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>

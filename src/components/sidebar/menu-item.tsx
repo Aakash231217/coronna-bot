@@ -12,44 +12,57 @@ type Props = {
 }
 
 const MenuItem = ({ size, path, icon, label, current, onSignOut }: Props) => {
-  switch (size) {
-    case 'max':
-      return (
-        <Link
-          onClick={onSignOut}
+  const active = !!current && current === path
+  const href = path ? `/${path}` : '#'
+
+  if (size === 'max') {
+    return (
+      <Link
+        onClick={onSignOut}
+        className={cn(
+          'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition',
+          active
+            ? 'bg-brand/10 text-foreground'
+            : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+        )}
+        href={href}
+      >
+        {active && (
+          <span className="absolute left-0 top-1/2 h-6 -translate-y-1/2 -translate-x-1 rounded-r-full bg-brand-gradient w-1" />
+        )}
+        <span
           className={cn(
-            'flex items-center gap-2 px-1 py-2 rounded-lg my-1',
-            !current
-              ? 'text-gray-500'
-              : current == path
-              ? 'bg-white font-bold text-black'
-              : 'text-gray-500'
+            'grid h-7 w-7 place-items-center rounded-lg transition',
+            active
+              ? 'bg-brand-gradient text-white shadow-sm'
+              : 'bg-secondary text-muted-foreground group-hover:text-foreground'
           )}
-          href={path ? `/${path}` : '#'}
-        >
-          {icon} {label}
-        </Link>
-      )
-    case 'min':
-      return (
-        <Link
-          onClick={onSignOut}
-          className={cn(
-            !current
-              ? 'text-gray-500'
-              : current == path
-              ? 'bg-white font-bold text-black'
-              : 'text-gray-500',
-            'rounded-lg py-2 my-1'
-          )}
-          href={path ? `/${path}` : '#'}
         >
           {icon}
-        </Link>
-      )
-    default:
-      return null
+        </span>
+        <span className={cn('font-medium', active && 'text-foreground')}>
+          {label}
+        </span>
+      </Link>
+    )
   }
+
+  return (
+    <Link
+      onClick={onSignOut}
+      className={cn(
+        'group relative grid h-10 w-10 place-items-center rounded-xl transition',
+        active
+          ? 'bg-brand-gradient text-white shadow'
+          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+      )}
+      href={href}
+      aria-label={label}
+      title={label}
+    >
+      {icon}
+    </Link>
+  )
 }
 
 export default MenuItem

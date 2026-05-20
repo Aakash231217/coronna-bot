@@ -9,17 +9,21 @@ type Props = {}
 
 const SignUp = (props: Props) => {
   return (
-    <div className="flex-1 py-36 md:px-16 w-full">
-      <div className="flex flex-col h-full gap-3">
-        <SignUpFormProvider>
-          <div className="flex flex-col gap-3">
-            <RegistrationFormStep />
-            <ButtonHandler />
-          </div>
-          <HighLightBar />
-        </SignUpFormProvider>
+    <SignUpFormProvider>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold tracking-tight">
+            Create your account
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Spin up your AI sales assistant in minutes.
+          </p>
+        </div>
+        <HighLightBar />
+        <RegistrationFormStep />
+        <ButtonHandler />
       </div>
-    </div>
+    </SignUpFormProvider>
   )
 }
 

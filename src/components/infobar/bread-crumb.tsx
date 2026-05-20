@@ -18,34 +18,39 @@ const BreadCrumb = (props: Props) => {
     realtime,
   } = useSideBar()
   return (
-    <div className="flex flex-col ">
-      <div className="flex gap-5 items-center">
-        <h2 className="text-3xl font-bold capitalize">{page}</h2>
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-3">
+        <h2 className="text-2xl font-bold capitalize tracking-tight md:text-3xl">
+          {page}
+        </h2>
         {page === 'conversation' && chatRoom && (
           <Loader
             loading={loading}
-            className="p-0 inline"
+            className="inline p-0"
           >
-            <Switch
-              defaultChecked={realtime}
-              onClick={(e) => onActivateRealtime(e)}
-              className="data-[state=checked]:bg-orange data-[state=unchecked]:bg-peach"
-            />
+            <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs">
+              Real-time
+              <Switch
+                defaultChecked={realtime}
+                onClick={(e) => onActivateRealtime(e)}
+                className="data-[state=checked]:bg-brand data-[state=unchecked]:bg-muted"
+              />
+            </span>
           </Loader>
         )}
       </div>
-      <p className="text-gray-500 text-sm">
+      <p className="max-w-xl text-sm text-muted-foreground">
         {page == 'settings'
-          ? 'Manage your account settings, preferences and integrations'
+          ? 'Manage your account settings, preferences and integrations.'
           : page == 'dashboard'
-          ? 'A detailed overview of your metrics, usage, customers and more'
+          ? 'A detailed overview of your metrics, usage, customers and more.'
           : page == 'appointment'
-          ? 'View and edit all your appointments'
+          ? 'View and edit all your appointments.'
           : page == 'email-marketing'
-          ? 'Send bulk emails to your customers'
+          ? 'Send bulk emails to your customers.'
           : page == 'integration'
-          ? 'Connect third-party applications into Corinna-AI'
-          : 'Modify domain settings, change chatbot options, enter sales questions and train your bot to do what you want it to.'}
+          ? 'Connect third-party applications into Corinna AI.'
+          : 'Modify domain settings, chatbot options, sales questions and training.'}
       </p>
     </div>
   )
