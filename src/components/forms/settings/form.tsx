@@ -5,7 +5,6 @@ import React from 'react'
 import { DomainUpdate } from './domain-update'
 import CodeSnippet from './code-snippet'
 import RescanDomain from './rescan-domain'
-import PremiumBadge from '@/icons/premium-badge'
 import EditChatbotIcon from './edit-chatbot-icon'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
@@ -58,9 +57,8 @@ const SettingsForm = ({ id, name, chatBot, plan }: Props) => {
       <div className="flex flex-col gap-3 mt-5">
         <div className="flex gap-4 items-center">
           <h2 className="font-bold text-2xl">Chatbot Settings</h2>
-          <div className="flex gap-1 bg-cream rounded-full px-3 py-1 text-xs items-center font-bold">
-            <PremiumBadge />
-            Premium
+          <div className="flex rounded-full bg-orange/10 px-3 py-1 text-xs font-bold text-orange">
+            Mascot studio
           </div>
         </div>
         <Separator orientation="horizontal" />

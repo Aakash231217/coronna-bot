@@ -39,7 +39,7 @@ const EditChatbotIcon = ({ register, errors, chatBot }: Props) => {
     <div className="py-5 flex flex-col gap-5 items-start">
       <Section
         label="Bot identity"
-        message="Pick a premium personality style or upload your own face for the chatbot."
+        message="Pick a polished personality style, then tune skin tone and hair in the live mascot studio."
       />
       <div className="grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-3">
         {personaOptions.map((persona, index) => (

@@ -1,29 +1,22 @@
 import { getUserAppointments } from '@/actions/appointment'
 import {
-  getUserBalance,
   getUserClients,
-  getUserPlanInfo,
   getUserTotalProductPrices,
-  getUserTransactions,
 } from '@/actions/dashboard'
 import DashboardCard from '@/components/dashboard/cards'
-import { PlanUsage } from '@/components/dashboard/plan-usage'
 import InfoBar from '@/components/infobar'
 import {
   CalendarClock,
-  DollarSign,
-  ReceiptText,
   TrendingUp,
   Users,
+  Bot,
+  Globe2,
 } from 'lucide-react'
 import React from 'react'
 
 const Page = async () => {
   const clients = await getUserClients()
-  const sales = await getUserBalance()
   const bookings = await getUserAppointments()
-  const plan = await getUserPlanInfo()
-  const transactions = await getUserTransactions()
   const products = await getUserTotalProductPrices()
 
   const pipeline = (products || 0) * (clients || 0)
@@ -50,10 +43,9 @@ const Page = async () => {
             icon={<CalendarClock className="h-5 w-5" />}
           />
           <DashboardCard
-            value={sales || 0}
-            sales
-            title="Total sales"
-            icon={<DollarSign className="h-5 w-5" />}
+            value={clients || 0}
+            title="Conversations ready"
+            icon={<Bot className="h-5 w-5" />}
           />
         </div>
 
@@ -61,71 +53,58 @@ const Page = async () => {
           <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-lg font-semibold">Plan usage</h2>
+                <h2 className="text-lg font-semibold">Workspace access</h2>
                 <p className="text-sm text-muted-foreground">
-                  Track credits, domains and contacts.
+                  Subscription blocks are removed for this local build.
                 </p>
               </div>
               <span className="rounded-full bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand">
-                {plan?.plan ?? 'STANDARD'}
+                Open access
               </span>
             </div>
-            <PlanUsage
-              plan={plan?.plan!}
-              credits={plan?.credits || 0}
-              domains={plan?.domains || 0}
-              clients={clients || 0}
-            />
+            <div className="mt-6 grid gap-3">
+              {[
+                ['Unlimited domain setup', 'Add and train chatbot domains without plan checks.'],
+                ['No Stripe required', 'Payments and Connect onboarding are hidden from the app UI.'],
+                ['Chatbot-first workflow', 'Focus on widget, conversations and appointment capture.'],
+              ].map(([title, copy]) => (
+                <div key={title} className="rounded-xl border border-border bg-muted/30 p-4">
+                  <p className="text-sm font-semibold text-gravel">{title}</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{copy}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand-gradient text-white shadow">
-                  <ReceiptText className="h-4 w-4" />
+                  <Globe2 className="h-4 w-4" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold">Recent transactions</h2>
+                  <h2 className="text-lg font-semibold">Setup guide</h2>
                   <p className="text-sm text-muted-foreground">
-                    Latest Stripe payouts on this account.
+                    Make the chatbot live on your customer website.
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                className="text-xs font-semibold text-brand hover:underline"
-              >
-                See more
-              </button>
             </div>
 
-            <div className="mt-5 divide-y divide-border">
-              {transactions && transactions.data.length > 0 ? (
-                transactions.data.slice(0, 6).map((transaction) => (
-                  <div
-                    className="flex items-center justify-between py-4"
-                    key={transaction.id}
-                  >
-                    <div>
-                      <p className="text-sm font-semibold">
-                        {transaction.calculated_statement_descriptor ||
-                          'Stripe charge'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(transaction.created * 1000).toLocaleString()}
-                      </p>
-                    </div>
-                    <p className="text-base font-semibold">
-                      ${(transaction.amount / 100).toFixed(2)}
-                    </p>
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              {[
+                ['1', 'Add a domain', 'Train the bot from your site content.'],
+                ['2', 'Customize mascot', 'Pick skin tone, hair and personality.'],
+                ['3', 'Copy widget code', 'Paste the embed script on your website.'],
+              ].map(([step, title, copy]) => (
+                <div key={step} className="rounded-2xl border border-border bg-muted/30 p-4">
+                  <div className="mb-4 grid h-9 w-9 place-items-center rounded-full bg-brand text-sm font-bold text-white">
+                    {step}
                   </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center gap-2 py-10 text-center text-sm text-muted-foreground">
-                  <ReceiptText className="h-6 w-6 text-muted-foreground/50" />
-                  <p>No transactions yet — connect Stripe to start.</p>
+                  <p className="text-sm font-semibold text-gravel">{title}</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{copy}</p>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>

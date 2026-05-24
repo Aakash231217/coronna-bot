@@ -2,6 +2,7 @@ import BotFace3D from '@/components/chatbot/bot-face-3d'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import React from 'react'
+import MascotStudio from './mascot-studio'
 
 type PremiumChatbotPreviewProps = {
   domainName: string
@@ -55,12 +56,14 @@ const PremiumChatbotPreview = ({
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange">Premium preview</p>
-          <h3 className="text-2xl font-bold text-gravel">Choose your bot identity</h3>
+          <h3 className="text-2xl font-bold text-gravel">Create your chatbot mascot</h3>
         </div>
         <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm">
-          Live widget
+          Three.js live
         </div>
       </div>
+
+      <MascotStudio />
 
       <div className="grid grid-cols-3 gap-3">
         {personas.map((persona, index) => (

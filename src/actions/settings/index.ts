@@ -42,23 +42,6 @@ export const onIntegrateDomain = async (domain: string, icon: string) => {
   const user = await getCurrentUser()
   if (!user) return
   try {
-    const subscription = await client.user.findUnique({
-      where: {
-        id: user.id,
-      },
-      select: {
-        _count: {
-          select: {
-            domains: true,
-          },
-        },
-        subscription: {
-          select: {
-            plan: true,
-          },
-        },
-      },
-    })
     const domainExists = await client.user.findFirst({
       where: {
         id: user.id,
@@ -71,51 +54,37 @@ export const onIntegrateDomain = async (domain: string, icon: string) => {
     })
 
     if (!domainExists) {
-      if (
-        (subscription?.subscription?.plan == 'STANDARD' &&
-          subscription._count.domains < 1) ||
-        (subscription?.subscription?.plan == 'PRO' &&
-          subscription._count.domains < 5) ||
-        (subscription?.subscription?.plan == 'ULTIMATE' &&
-          subscription._count.domains < 10)
-      ) {
-        const scraped = await scrapeDomain(domain)
+      const scraped = await scrapeDomain(domain)
 
-        const newDomain = await client.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            domains: {
-              create: {
-                name: domain,
-                icon,
-                description: scraped?.description || null,
-                knowledgeBase: scraped?.knowledgeBase || null,
-                knowledgeBaseUpdatedAt: scraped ? new Date() : null,
-                chatBot: {
-                  create: {
-                    welcomeMessage: 'Hey there, have  a question? Text us here',
-                  },
+      const newDomain = await client.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          domains: {
+            create: {
+              name: domain,
+              icon,
+              description: scraped?.description || null,
+              knowledgeBase: scraped?.knowledgeBase || null,
+              knowledgeBaseUpdatedAt: scraped ? new Date() : null,
+              chatBot: {
+                create: {
+                  welcomeMessage: 'Hey there, have  a question? Text us here',
                 },
               },
             },
           },
-        })
+        },
+      })
 
-        if (newDomain) {
-          return {
-            status: 200,
-            message: scraped
-              ? 'Domain added and website scanned for knowledge base'
-              : 'Domain added (could not scan website automatically — try Re-scan later)',
-          }
+      if (newDomain) {
+        return {
+          status: 200,
+          message: scraped
+            ? 'Domain added and website scanned for knowledge base'
+            : 'Domain added (could not scan website automatically — try Re-scan later)',
         }
-      }
-      return {
-        status: 400,
-        message:
-          "You've reached the maximum number of domains, upgrade your plan",
       }
     }
     return {
