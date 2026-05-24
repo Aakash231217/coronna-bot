@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Loader } from '@/components/loader'
 import PremiumChatbotPreview from './premium-chatbot-preview'
 
+export type BotPersona = 'human' | 'mascot' | 'voice'
+
 const WelcomeMessage = dynamic(
   () => import('./greetings-message').then((props) => props.default),
   {
@@ -30,6 +32,7 @@ type Props = {
 }
 
 const SettingsForm = ({ id, name, chatBot, plan }: Props) => {
+  const [selectedPersona, setSelectedPersona] = React.useState<BotPersona>('human')
   const {
     register,
     onUpdateSettings,
@@ -68,6 +71,8 @@ const SettingsForm = ({ id, name, chatBot, plan }: Props) => {
               chatBot={chatBot}
               register={register}
               errors={errors}
+              selectedPersona={selectedPersona}
+              onSelectPersona={setSelectedPersona}
             />
             <WelcomeMessage
               message={chatBot?.welcomeMessage!}
@@ -80,6 +85,7 @@ const SettingsForm = ({ id, name, chatBot, plan }: Props) => {
               domainName={name}
               welcomeMessage={chatBot?.welcomeMessage}
               icon={chatBot?.icon}
+              selectedPersona={selectedPersona}
             />
           </div>
         </div>

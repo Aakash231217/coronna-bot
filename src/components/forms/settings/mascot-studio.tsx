@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils'
 import React, { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
+import type { BotPersona } from './form'
 
 const skinTones = [
   { name: 'Sand', value: '#f2c29b' },
@@ -65,11 +66,15 @@ const addHair = (group: THREE.Group, style: HairStyle, color: string) => {
   group.add(sweep)
 }
 
-const MascotStudio = () => {
+type MascotStudioProps = {
+  selectedPersona: BotPersona
+}
+
+const MascotStudio = ({ selectedPersona }: MascotStudioProps) => {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [skinTone, setSkinTone] = useState(skinTones[0].value)
   const [hairColor, setHairColor] = useState(hairColors[0].value)
-  const [hairStyle, setHairStyle] = useState<HairStyle>('Curls')
+  const [hairStyle, setHairStyle] = useState<HairStyle>('Side part')
 
   useEffect(() => {
     if (!mountRef.current) return
@@ -79,7 +84,7 @@ const MascotStudio = () => {
     scene.background = new THREE.Color('#f8fafc')
 
     const camera = new THREE.PerspectiveCamera(36, host.clientWidth / host.clientHeight, 0.1, 100)
-    camera.position.set(0, 0.1, 4.2)
+    camera.position.set(0, 0.02, 4.4)
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -100,12 +105,25 @@ const MascotStudio = () => {
     const mascot = new THREE.Group()
     scene.add(mascot)
 
-    const skinMaterial = new THREE.MeshStandardMaterial({ color: skinTone, roughness: 0.52 })
+    const isMascot = selectedPersona === 'mascot'
+    const isVoice = selectedPersona === 'voice'
+    const skinMaterial = new THREE.MeshStandardMaterial({ color: isMascot ? '#ffc24f' : skinTone, roughness: 0.52 })
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.66, 64, 64), skinMaterial)
-    head.scale.set(0.9, 1.06, 0.86)
+    head.scale.set(isMascot ? 0.98 : 0.9, isMascot ? 0.98 : 1.06, 0.86)
     mascot.add(head)
 
-    addHair(mascot, hairStyle, hairColor)
+    if (!isMascot) addHair(mascot, hairStyle, hairColor)
+    if (isVoice) {
+      const headsetMaterial = new THREE.MeshStandardMaterial({ color: '#7b56d9', roughness: 0.4 })
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.63, 0.025, 12, 80, Math.PI), headsetMaterial)
+      band.rotation.set(Math.PI, 0, 0)
+      band.position.set(0, 0.32, 0.04)
+      mascot.add(band)
+      const mic = new THREE.Mesh(new THREE.CapsuleGeometry(0.025, 0.28, 6, 12), headsetMaterial)
+      mic.rotation.z = -0.75
+      mic.position.set(0.46, -0.02, 0.46)
+      mascot.add(mic)
+    }
 
     const leftEar = new THREE.Mesh(new THREE.SphereGeometry(0.12, 24, 24), skinMaterial)
     leftEar.position.set(-0.58, 0.03, 0.02)
@@ -135,7 +153,7 @@ const MascotStudio = () => {
 
     const body = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.54, 0.55, 8, 32),
-      new THREE.MeshStandardMaterial({ color: '#242c42', roughness: 0.6 })
+      new THREE.MeshStandardMaterial({ color: isVoice ? '#44306f' : isMascot ? '#ff8f3d' : '#242c42', roughness: 0.6 })
     )
     body.position.set(0, -1.23, 0)
     body.scale.set(1.18, 0.9, 0.75)
@@ -190,32 +208,32 @@ const MascotStudio = () => {
       })
       renderer.dispose()
     }
-  }, [hairColor, hairStyle, skinTone])
+  }, [hairColor, hairStyle, selectedPersona, skinTone])
 
   return (
     <div className="overflow-hidden rounded-[24px] border border-border bg-white shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
       <div className="grid gap-0 lg:grid-cols-[minmax(220px,0.9fr)_minmax(260px,1fr)]">
-        <div className="min-h-[320px] bg-[radial-gradient(circle_at_50%_20%,#fff0ce_0%,transparent_34%),linear-gradient(145deg,#f8fafc,#eef4ff)] p-4">
-          <div ref={mountRef} className="h-[320px] w-full" />
+        <div className="min-h-[260px] bg-[radial-gradient(circle_at_50%_20%,#fff0ce_0%,transparent_34%),linear-gradient(145deg,#f8fafc,#eef4ff)] p-3">
+          <div ref={mountRef} className="h-[260px] w-full" />
         </div>
         <div className="flex flex-col gap-5 p-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange">Mascot creator</p>
             <h3 className="mt-1 text-xl font-bold text-gravel">Design the widget face</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Change skin tone, hair and color. This is a live Three.js mascot preview for the premium chatbot identity.
+              Pick a style above, then tune skin tone, hair and color for the live website widget preview.
             </p>
           </div>
 
           <div className="grid gap-4">
-            <div>
+            <div className={cn(selectedPersona === 'mascot' && 'opacity-50')}>
               <p className="mb-2 text-xs font-bold uppercase text-gray-500">Skin tone</p>
               <div className="flex flex-wrap gap-2">
                 {skinTones.map((tone) => (
                   <button
                     key={tone.value}
                     type="button"
-                    onClick={() => setSkinTone(tone.value)}
+                    onClick={() => selectedPersona !== 'mascot' && setSkinTone(tone.value)}
                     className={cn(
                       'h-9 w-9 rounded-full border-2 shadow-sm transition hover:scale-105',
                       skinTone === tone.value ? 'border-gray-950' : 'border-white'
@@ -227,14 +245,14 @@ const MascotStudio = () => {
               </div>
             </div>
 
-            <div>
+            <div className={cn(selectedPersona === 'mascot' && 'opacity-50')}>
               <p className="mb-2 text-xs font-bold uppercase text-gray-500">Hair style</p>
               <div className="flex flex-wrap gap-2">
                 {hairStyles.map((style) => (
                   <button
                     key={style}
                     type="button"
-                    onClick={() => setHairStyle(style)}
+                    onClick={() => selectedPersona !== 'mascot' && setHairStyle(style)}
                     className={cn(
                       'rounded-full border px-3 py-2 text-xs font-semibold transition',
                       hairStyle === style
@@ -248,14 +266,14 @@ const MascotStudio = () => {
               </div>
             </div>
 
-            <div>
+            <div className={cn(selectedPersona === 'mascot' && 'opacity-50')}>
               <p className="mb-2 text-xs font-bold uppercase text-gray-500">Hair color</p>
               <div className="flex flex-wrap gap-2">
                 {hairColors.map((color) => (
                   <button
                     key={color.value}
                     type="button"
-                    onClick={() => setHairColor(color.value)}
+                    onClick={() => selectedPersona !== 'mascot' && setHairColor(color.value)}
                     className={cn(
                       'h-9 w-9 rounded-full border-2 shadow-sm transition hover:scale-105',
                       hairColor === color.value ? 'border-gray-950' : 'border-white'

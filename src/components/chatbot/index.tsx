@@ -51,7 +51,7 @@ const AiChatBot = (props: Props) => {
       )}
       <div
         className={cn(
-          'rounded-full relative cursor-pointer shadow-md w-20 h-20 flex items-center justify-center bg-grandis',
+          'rounded-full relative cursor-pointer shadow-md w-[72px] h-[72px] flex items-center justify-center bg-grandis',
           loading ? 'invisible' : 'visible'
         )}
         onClick={onOpenChatBot}
@@ -63,7 +63,7 @@ const AiChatBot = (props: Props) => {
             fill
           />
         ) : (
-          <BotFace3D size={80} />
+          <BotFace3D size={72} />
         )}
       </div>
     </div>

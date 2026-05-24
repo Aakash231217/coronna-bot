@@ -79,7 +79,7 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
   ) => {
     console.log(errors)
     return (
-      <div className="mr-[80px] flex h-[670px] w-[450px] flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)]">
+      <div className="mr-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)]">
         <div className="flex items-center justify-between gap-3 border-b border-border bg-brand-gradient px-5 py-4 text-white">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 ring-2 ring-white/40">
@@ -129,7 +129,7 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
                   background: theme || '',
                   color: textColor || '',
                 }}
-                className="px-3 flex h-[400px] flex-col py-5 gap-3 chat-window overflow-y-auto"
+                className="px-3 flex h-[310px] flex-col py-5 gap-3 chat-window overflow-y-auto"
                 ref={ref}
               >
                 {chats.map((chat, key) => (

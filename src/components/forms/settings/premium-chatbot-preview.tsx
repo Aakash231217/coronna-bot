@@ -3,30 +3,38 @@ import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import React from 'react'
 import MascotStudio from './mascot-studio'
+import type { BotPersona } from './form'
 
 type PremiumChatbotPreviewProps = {
   domainName: string
   welcomeMessage?: string | null
   icon?: string | null
+  selectedPersona: BotPersona
 }
 
 const personas = [
   {
+    id: 'human',
     name: 'Nova',
-    role: 'Sales concierge',
+    label: 'Cartoon Human',
+    role: 'Premium consultant',
     gradient: 'from-[#fff2bd] via-[#ffbb62] to-[#d9662d]',
   },
   {
+    id: 'mascot',
     name: 'Mira',
-    role: 'Support specialist',
+    label: '3D Mascot',
+    role: 'Warm support mascot',
     gradient: 'from-[#dff7ff] via-[#86d7f2] to-[#4f79d7]',
   },
   {
+    id: 'voice',
     name: 'Kairo',
-    role: 'Product advisor',
+    label: 'Voice Agent',
+    role: 'Talk-ready advisor',
     gradient: 'from-[#f4e3ff] via-[#c79cff] to-[#7b56d9]',
   },
-]
+] satisfies { id: BotPersona; name: string; label: string; role: string; gradient: string }[]
 
 const MiniPersona = ({ index, active }: { index: number; active?: boolean }) => (
   <div
@@ -47,12 +55,15 @@ const PremiumChatbotPreview = ({
   domainName,
   welcomeMessage,
   icon,
+  selectedPersona,
 }: PremiumChatbotPreviewProps) => {
   const botMessage = welcomeMessage || 'Hey there, have a question? Text us here'
   const cleanDomain = domainName.replace(/^https?:\/\//, '').replace(/^www\./, '')
+  const activeIndex = personas.findIndex((persona) => persona.id === selectedPersona)
+  const activePersona = personas[activeIndex] ?? personas[0]
 
   return (
-    <div className="sticky top-5 flex flex-col gap-5 rounded-[28px] border border-gray-200 bg-[linear-gradient(145deg,#ffffff_0%,#f8fafc_45%,#fff4df_100%)] p-5 shadow-[0_24px_80px_rgba(25,32,48,0.12)]">
+    <div className="sticky top-5 flex flex-col gap-4 rounded-[28px] border border-gray-200 bg-[linear-gradient(145deg,#ffffff_0%,#f8fafc_45%,#fff4df_100%)] p-4 shadow-[0_24px_80px_rgba(25,32,48,0.12)]">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange">Premium preview</p>
@@ -63,7 +74,7 @@ const PremiumChatbotPreview = ({
         </div>
       </div>
 
-      <MascotStudio />
+      <MascotStudio selectedPersona={selectedPersona} />
 
       <div className="grid grid-cols-3 gap-3">
         {personas.map((persona, index) => (
@@ -71,11 +82,12 @@ const PremiumChatbotPreview = ({
             key={persona.name}
             className={cn(
               'rounded-2xl border bg-white p-3 shadow-sm',
-              index === 0 ? 'border-orange' : 'border-gray-200'
+              persona.id === selectedPersona ? 'border-orange' : 'border-gray-200'
             )}
           >
-            <MiniPersona index={index} active={index === 0} />
+            <MiniPersona index={index} active={persona.id === selectedPersona} />
             <p className="mt-3 text-sm font-bold text-gray-900">{persona.name}</p>
+            <p className="text-[11px] font-semibold text-orange">{persona.label}</p>
             <p className="text-[11px] leading-tight text-gray-500">{persona.role}</p>
           </div>
         ))}
@@ -91,7 +103,7 @@ const PremiumChatbotPreview = ({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h4 className="truncate text-lg font-bold text-gray-950">Sales Rep - Nova</h4>
+            <h4 className="truncate text-lg font-bold text-gray-950">Sales Rep - {activePersona.name}</h4>
             <p className="truncate text-sm text-gray-500">{cleanDomain}</p>
           </div>
           <div className="flex -space-x-2">
@@ -118,7 +130,7 @@ const PremiumChatbotPreview = ({
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange text-white">◔</div>
             <div>
               <p className="font-semibold">Voice reply enabled</p>
-              <p className="text-xs text-white/70">Nova can speak replies with ElevenLabs.</p>
+              <p className="text-xs text-white/70">{activePersona.name} can speak replies with ElevenLabs.</p>
             </div>
           </div>
         </div>
