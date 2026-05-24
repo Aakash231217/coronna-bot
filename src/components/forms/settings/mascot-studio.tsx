@@ -105,14 +105,13 @@ const MascotStudio = ({ selectedPersona }: MascotStudioProps) => {
     const mascot = new THREE.Group()
     scene.add(mascot)
 
-    const isMascot = selectedPersona === 'mascot'
     const isVoice = selectedPersona === 'voice'
-    const skinMaterial = new THREE.MeshStandardMaterial({ color: isMascot ? '#ffc24f' : skinTone, roughness: 0.52 })
+    const skinMaterial = new THREE.MeshStandardMaterial({ color: skinTone, roughness: 0.52 })
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.66, 64, 64), skinMaterial)
-    head.scale.set(isMascot ? 0.98 : 0.9, isMascot ? 0.98 : 1.06, 0.86)
+    head.scale.set(selectedPersona === 'mascot' ? 0.98 : 0.9, selectedPersona === 'mascot' ? 0.98 : 1.06, 0.86)
     mascot.add(head)
 
-    if (!isMascot) addHair(mascot, hairStyle, hairColor)
+    addHair(mascot, hairStyle, hairColor)
     if (isVoice) {
       const headsetMaterial = new THREE.MeshStandardMaterial({ color: '#7b56d9', roughness: 0.4 })
       const band = new THREE.Mesh(new THREE.TorusGeometry(0.63, 0.025, 12, 80, Math.PI), headsetMaterial)
@@ -153,7 +152,7 @@ const MascotStudio = ({ selectedPersona }: MascotStudioProps) => {
 
     const body = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.54, 0.55, 8, 32),
-      new THREE.MeshStandardMaterial({ color: isVoice ? '#44306f' : isMascot ? '#ff8f3d' : '#242c42', roughness: 0.6 })
+      new THREE.MeshStandardMaterial({ color: isVoice ? '#44306f' : selectedPersona === 'mascot' ? '#ff8f3d' : '#242c42', roughness: 0.6 })
     )
     body.position.set(0, -1.23, 0)
     body.scale.set(1.18, 0.9, 0.75)
@@ -226,14 +225,14 @@ const MascotStudio = ({ selectedPersona }: MascotStudioProps) => {
           </div>
 
           <div className="grid gap-4">
-            <div className={cn(selectedPersona === 'mascot' && 'opacity-50')}>
+            <div>
               <p className="mb-2 text-xs font-bold uppercase text-gray-500">Skin tone</p>
               <div className="flex flex-wrap gap-2">
                 {skinTones.map((tone) => (
                   <button
                     key={tone.value}
                     type="button"
-                    onClick={() => selectedPersona !== 'mascot' && setSkinTone(tone.value)}
+                    onClick={() => setSkinTone(tone.value)}
                     className={cn(
                       'h-9 w-9 rounded-full border-2 shadow-sm transition hover:scale-105',
                       skinTone === tone.value ? 'border-gray-950' : 'border-white'
@@ -245,14 +244,14 @@ const MascotStudio = ({ selectedPersona }: MascotStudioProps) => {
               </div>
             </div>
 
-            <div className={cn(selectedPersona === 'mascot' && 'opacity-50')}>
+            <div>
               <p className="mb-2 text-xs font-bold uppercase text-gray-500">Hair style</p>
               <div className="flex flex-wrap gap-2">
                 {hairStyles.map((style) => (
                   <button
                     key={style}
                     type="button"
-                    onClick={() => selectedPersona !== 'mascot' && setHairStyle(style)}
+                    onClick={() => setHairStyle(style)}
                     className={cn(
                       'rounded-full border px-3 py-2 text-xs font-semibold transition',
                       hairStyle === style
@@ -266,14 +265,14 @@ const MascotStudio = ({ selectedPersona }: MascotStudioProps) => {
               </div>
             </div>
 
-            <div className={cn(selectedPersona === 'mascot' && 'opacity-50')}>
+            <div>
               <p className="mb-2 text-xs font-bold uppercase text-gray-500">Hair color</p>
               <div className="flex flex-wrap gap-2">
                 {hairColors.map((color) => (
                   <button
                     key={color.value}
                     type="button"
-                    onClick={() => selectedPersona !== 'mascot' && setHairColor(color.value)}
+                    onClick={() => setHairColor(color.value)}
                     className={cn(
                       'h-9 w-9 rounded-full border-2 shadow-sm transition hover:scale-105',
                       hairColor === color.value ? 'border-gray-950' : 'border-white'
