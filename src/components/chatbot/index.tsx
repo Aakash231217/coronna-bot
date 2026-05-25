@@ -40,6 +40,9 @@ const AiChatBot = (props: Props) => {
           help={currentBot?.chatBot?.helpdesk}
           theme={currentBot?.chatBot?.background}
           textColor={currentBot?.chatBot?.textColor}
+          widgetTheme={currentBot?.chatBot?.widgetTheme}
+          starterPrompts={currentBot?.chatBot?.starterPrompts || []}
+          showBranding={currentBot?.chatBot?.showBranding ?? true}
           chats={onChats}
           register={register}
           onChat={onStartChatting}
@@ -55,6 +58,10 @@ const AiChatBot = (props: Props) => {
           loading ? 'invisible' : 'visible'
         )}
         onClick={onOpenChatBot}
+        style={{
+          width: currentBot?.chatBot?.launcherSize || 72,
+          height: currentBot?.chatBot?.launcherSize || 72,
+        }}
       >
         {currentBot?.chatBot?.icon ? (
           <Image

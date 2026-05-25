@@ -29,6 +29,9 @@ type Props = {
   domainName: string
   theme?: string | null
   textColor?: string | null
+  widgetTheme?: string
+  starterPrompts: string[]
+  showBranding: boolean
   help?: boolean
   realtimeMode:
     | {
@@ -70,6 +73,9 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
       setChat,
       textColor,
       theme,
+      widgetTheme,
+      starterPrompts,
+      showBranding,
       help,
       voiceEnabled,
       speaking,
@@ -79,7 +85,7 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
   ) => {
     console.log(errors)
     return (
-      <div className="mr-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)]">
+      <div className={`mr-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-3xl border border-border shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)] ${widgetTheme === 'dark' ? 'bg-[#111827] text-white' : 'bg-card'}`}>
         <div className="flex items-center justify-between gap-3 border-b border-border bg-brand-gradient px-5 py-4 text-white">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 ring-2 ring-white/40">
@@ -139,6 +145,19 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
                   />
                 ))}
                 {onResponding && <Responding />}
+                {starterPrompts.length > 0 && chats.length <= 1 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {starterPrompts.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        className="rounded-full border border-border bg-white px-3 py-1 text-xs text-gray-700 shadow-sm"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <form
                 onSubmit={onChat}
@@ -190,9 +209,9 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
             </div>
           </TabsContent>
         </TabsMenu>
-        <div className="flex justify-center ">
+        {showBranding && <div className="flex justify-center ">
           <p className="text-gray-400 text-xs">Powered By Web Prodigies</p>
-        </div>
+        </div>}
       </div>
     )
   }

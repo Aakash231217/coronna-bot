@@ -10,6 +10,10 @@ import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Loader } from '@/components/loader'
 import PremiumChatbotPreview from './premium-chatbot-preview'
+import SourceTrainingPanel from './source-training-panel'
+import BotAnalyticsPanel from './bot-analytics-panel'
+import WidgetCustomizationPanel from './widget-customization-panel'
+import TestBotPlayground from './test-bot-playground'
 
 export type BotPersona = 'human' | 'mascot' | 'voice'
 
@@ -28,6 +32,13 @@ type Props = {
     id: string
     icon: string | null
     welcomeMessage: string | null
+    background?: string | null
+    textColor?: string | null
+    launcherPosition?: string
+    launcherSize?: number
+    widgetTheme?: string
+    starterPrompts?: string[]
+    showBranding?: boolean
   } | null
 }
 
@@ -89,6 +100,14 @@ const SettingsForm = ({ id, name, chatBot, plan }: Props) => {
             />
           </div>
         </div>
+      </div>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <SourceTrainingPanel domainId={id} />
+        <TestBotPlayground domainId={id} />
+      </div>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <BotAnalyticsPanel domainId={id} />
+        <WidgetCustomizationPanel domainId={id} chatBot={chatBot} />
       </div>
       <div className="flex gap-5 justify-end">
         <Button

@@ -59,6 +59,7 @@
     "next-themes": "^0.3.0",
     "nodemailer": "^6.9.13",
     "openai": "^4.47.1",
+    "pdf-parse": "^2.4.5",
     "prisma": "^5.13.0",
     "pusher": "^5.2.0",
     "pusher-js": "^8.4.0-rc2",

@@ -4,6 +4,7 @@ import { client } from '@/lib/prisma'
 import { extractEmailsFromString, extractURLfromString } from '@/lib/utils'
 import { onRealTimeChat } from '../conversation'
 import { onMailer } from '../mailer'
+import { onRecordUnansweredQuestion, onSearchDomainKnowledge } from '../settings'
 import OpenAi from 'openai'
 
 const openRouterKey = process.env.OPEN_ROUTER_KEY || process.env.OPENROUTER_API_KEY
@@ -59,6 +60,11 @@ export const onGetCurrentChatBot = async (id: string) => {
             icon: true,
             textColor: true,
             background: true,
+            launcherPosition: true,
+            launcherSize: true,
+            widgetTheme: true,
+            starterPrompts: true,
+            showBranding: true,
             helpdesk: true,
           },
         },
@@ -74,6 +80,28 @@ export const onGetCurrentChatBot = async (id: string) => {
 }
 
 let customerEmail: string | undefined
+
+const buildRagContext = async (domainId: string, message: string) => {
+  const chunks = await onSearchDomainKnowledge(domainId, message, 4)
+  const relevant = chunks.filter((chunk) => chunk.score > 0.12)
+
+  return {
+    context: relevant
+      .map(
+        (chunk, index) =>
+          `[${index + 1}] ${chunk.source.title} (${chunk.source.type})\n${chunk.content}`
+      )
+      .join('\n\n'),
+    citations: relevant.map((chunk, index) => `[${index + 1}] ${chunk.source.title}`),
+    hasRelevantSources: relevant.length > 0,
+  }
+}
+
+const withCitations = (content: string | null | undefined, citations: string[]) => {
+  const safeContent = content || ''
+  if (!citations.length) return safeContent
+  return `${safeContent}\n\nSources: ${citations.join(', ')}`
+}
 
 export const onAiChatBotAssistant = async (
   id: string,
@@ -101,6 +129,7 @@ export const onAiChatBotAssistant = async (
       },
     })
     if (chatBotDomain) {
+      const rag = await buildRagContext(id, message)
       const extractedEmail = extractEmailsFromString(message)
       if (extractedEmail) {
         customerEmail = extractedEmail[0]
@@ -222,7 +251,7 @@ export const onAiChatBotAssistant = async (
               content: `
               You are the AI sales assistant for ${chatBotDomain.name}.
               ${chatBotDomain.description ? `Business summary: ${chatBotDomain.description}` : ''}
-              ${chatBotDomain.knowledgeBase ? `Use the following knowledge base from the company website to answer factual questions accurately. Do not invent information that is not present here.\n\nKNOWLEDGE BASE:\n${chatBotDomain.knowledgeBase}` : ''}
+              ${rag.context ? `Use these retrieved source chunks as the highest priority factual context. Cite them in your answer when useful.\n\nRETRIEVED SOURCES:\n${rag.context}` : chatBotDomain.knowledgeBase ? `Use the following knowledge base from the company website to answer factual questions accurately. Do not invent information that is not present here.\n\nKNOWLEDGE BASE:\n${chatBotDomain.knowledgeBase}` : ''}
 
               You will get an array of questions that you must ask the customer. 
               
@@ -273,9 +302,9 @@ export const onAiChatBotAssistant = async (
           if (realtime) {
             const response = {
               role: 'assistant',
-              content: chatCompletion.choices[0].message.content.replace(
-                '(realtime)',
-                ''
+              content: withCitations(
+                chatCompletion.choices[0].message.content.replace('(realtime)', ''),
+                rag.citations
               ),
             }
 
@@ -338,7 +367,11 @@ export const onAiChatBotAssistant = async (
 
           const response = {
             role: 'assistant',
-            content: chatCompletion.choices[0].message.content,
+            content: withCitations(chatCompletion.choices[0].message.content, rag.citations),
+          }
+
+          if (!rag.hasRelevantSources && message.trim().endsWith('?')) {
+            await onRecordUnansweredQuestion(id, message)
           }
 
           await onStoreConversations(
@@ -358,7 +391,7 @@ export const onAiChatBotAssistant = async (
             content: `
             You are the AI sales assistant for ${chatBotDomain.name}.
             ${chatBotDomain.description ? `Business summary: ${chatBotDomain.description}` : ''}
-            ${chatBotDomain.knowledgeBase ? `Use the following knowledge base from the company website to answer factual questions accurately. Do not invent information that is not present here.\n\nKNOWLEDGE BASE:\n${chatBotDomain.knowledgeBase}` : ''}
+            ${rag.context ? `Use these retrieved source chunks as the highest priority factual context. Cite them in your answer when useful.\n\nRETRIEVED SOURCES:\n${rag.context}` : chatBotDomain.knowledgeBase ? `Use the following knowledge base from the company website to answer factual questions accurately. Do not invent information that is not present here.\n\nKNOWLEDGE BASE:\n${chatBotDomain.knowledgeBase}` : ''}
 
             Your goal is to have a natural, human-like conversation with the customer in order to understand their needs, provide relevant information based on the knowledge base above, and ultimately guide them towards making a purchase or redirect them to a link if they havent provided all relevant information.
             Right now you are talking to a customer for the first time. Start by giving them a warm welcome on behalf of ${chatBotDomain.name} and make them feel welcomed.
@@ -379,7 +412,11 @@ export const onAiChatBotAssistant = async (
       if (chatCompletion) {
         const response = {
           role: 'assistant',
-          content: chatCompletion.choices[0].message.content,
+          content: withCitations(chatCompletion.choices[0].message.content, rag.citations),
+        }
+
+        if (!rag.hasRelevantSources && message.trim().endsWith('?')) {
+          await onRecordUnansweredQuestion(id, message)
         }
 
         return { response }
