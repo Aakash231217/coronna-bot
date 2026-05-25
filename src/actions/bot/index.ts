@@ -6,8 +6,21 @@ import { onRealTimeChat } from '../conversation'
 import { onMailer } from '../mailer'
 import OpenAi from 'openai'
 
+const openRouterKey = process.env.OPEN_ROUTER_KEY || process.env.OPENROUTER_API_KEY
+const aiModel = process.env.OPEN_ROUTER_MODEL || 'openai/gpt-4o-mini'
+
 const openai = new OpenAi({
-  apiKey: process.env.OPEN_AI_KEY,
+  apiKey: openRouterKey || process.env.OPEN_AI_KEY,
+  baseURL: openRouterKey ? 'https://openrouter.ai/api/v1' : undefined,
+  defaultHeaders: openRouterKey
+    ? {
+        'HTTP-Referer':
+          process.env.NEXT_PUBLIC_APP_URL ||
+          process.env.BETTER_AUTH_URL ||
+          'http://localhost:3000',
+        'X-Title': 'Corinna AI',
+      }
+    : undefined,
 })
 
 export const onStoreConversations = async (
@@ -244,7 +257,7 @@ export const onAiChatBotAssistant = async (
               content: message,
             },
           ],
-          model: 'gpt-3.5-turbo',
+          model: aiModel,
         })
 
         if (chatCompletion.choices[0].message.content?.includes('(realtime)')) {
@@ -360,7 +373,7 @@ export const onAiChatBotAssistant = async (
             content: message,
           },
         ],
-        model: 'gpt-3.5-turbo',
+        model: aiModel,
       })
 
       if (chatCompletion) {
