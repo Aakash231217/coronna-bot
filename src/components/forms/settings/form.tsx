@@ -15,7 +15,7 @@ import BotAnalyticsPanel from './bot-analytics-panel'
 import WidgetCustomizationPanel from './widget-customization-panel'
 import TestBotPlayground from './test-bot-playground'
 
-export type BotPersona = 'human' | 'mascot' | 'voice'
+export type BotPersona = 'human' | 'mascot' | 'voice' | 'friendly' | 'pro'
 
 const WelcomeMessage = dynamic(
   () => import('./greetings-message').then((props) => props.default),

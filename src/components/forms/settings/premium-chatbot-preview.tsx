@@ -34,6 +34,20 @@ const personas = [
     role: 'Talk-ready advisor',
     gradient: 'from-[#f4e3ff] via-[#c79cff] to-[#7b56d9]',
   },
+  {
+    id: 'friendly',
+    name: 'Pixel',
+    label: 'Friendly Buddy',
+    role: 'Playful helper',
+    gradient: 'from-[#dcffe9] via-[#7ce6a8] to-[#2faf6b]',
+  },
+  {
+    id: 'pro',
+    name: 'Atlas',
+    label: 'Pro Executive',
+    role: 'Sharp closer',
+    gradient: 'from-[#ffe1e1] via-[#ff9d9d] to-[#d94f4f]',
+  },
 ] satisfies { id: BotPersona; name: string; label: string; role: string; gradient: string }[]
 
 const MiniPersona = ({ index, active }: { index: number; active?: boolean }) => (
@@ -76,7 +90,7 @@ const PremiumChatbotPreview = ({
 
       <MascotStudio selectedPersona={selectedPersona} />
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
         {personas.map((persona, index) => (
           <div
             key={persona.name}

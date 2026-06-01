@@ -91,8 +91,6 @@ model Domain {
   helpdesk        HelpDesk[]
   filterQuestions FilterQuestions[]
   products        Product[]
-  sources         DomainSource[]
-  unansweredQuestions UnansweredQuestion[]
 
   customer   Customer[]
   User       User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -107,52 +105,9 @@ model ChatBot {
   icon           String?
   background     String?
   textColor      String?
-  launcherPosition String @default("right")
-  launcherSize     Int    @default(72)
-  widgetTheme      String @default("light")
-  starterPrompts   String[] @default([])
-  showBranding     Boolean @default(true)
   helpdesk       Boolean @default(false)
   Domain         Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
   domainId       String? @unique @db.Uuid
-}
-
-model DomainSource {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title       String
-  type        SourceType @default(TEXT)
-  status      SourceStatus @default(READY)
-  content     String
-  summary     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  Domain      Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
-  domainId    String? @db.Uuid
-  chunks      SourceChunk[]
-}
-
-model SourceChunk {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  content   String
-  embedding Float[]  @default([])
-  order     Int      @default(0)
-  createdAt DateTime @default(now())
-
-  source   DomainSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  sourceId String @db.Uuid
-}
-
-model UnansweredQuestion {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  question  String
-  answer    String?
-  resolved  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  Domain   Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
-  domainId String? @db.Uuid
 }
 
 model Billings {
@@ -267,16 +222,4 @@ enum Plans {
 enum Role {
   user
   assistant
-}
-
-enum SourceType {
-  TEXT
-  PDF
-  WEBSITE
-}
-
-enum SourceStatus {
-  PROCESSING
-  READY
-  FAILED
 }

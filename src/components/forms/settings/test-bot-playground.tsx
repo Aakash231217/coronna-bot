@@ -3,18 +3,87 @@
 import { onTestDomainBot } from '@/actions/settings'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
-import { Bot, Loader2, Send } from 'lucide-react'
-import React, { useState, useTransition } from 'react'
+import { Bot, Loader2, Send, Volume2, VolumeX } from 'lucide-react'
+import React, { useRef, useState, useTransition } from 'react'
 
 const TestBotPlayground = ({ domainId }: { domainId: string }) => {
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState('')
   const [citations, setCitations] = useState<string[]>([])
   const [usedSources, setUsedSources] = useState(0)
+  const [speaking, setSpeaking] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  const speakWithBrowser = (text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    try {
+      window.speechSynthesis.cancel()
+      const utter = new SpeechSynthesisUtterance(text)
+      utter.lang = 'en-US'
+      utter.onstart = () => setSpeaking(true)
+      utter.onend = () => setSpeaking(false)
+      utter.onerror = () => setSpeaking(false)
+      window.speechSynthesis.speak(utter)
+    } catch {
+      setSpeaking(false)
+    }
+  }
+
+  const stopSpeaking = () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    setSpeaking(false)
+  }
+
+  const onPlayVoice = async () => {
+    if (speaking) {
+      stopSpeaking()
+      return
+    }
+    const cleaned = answer.replace('(complete)', '').trim()
+    if (!cleaned) return
+
+    try {
+      const response = await fetch('/api/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: cleaned }),
+      })
+
+      if (!response.ok || response.status === 204) {
+        speakWithBrowser(cleaned)
+        return
+      }
+
+      const audioBlob = await response.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+      audioRef.current?.pause()
+      const audio = new Audio(audioUrl)
+      audioRef.current = audio
+      setSpeaking(true)
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl)
+        setSpeaking(false)
+      }
+      audio.onerror = () => {
+        URL.revokeObjectURL(audioUrl)
+        speakWithBrowser(cleaned)
+      }
+      await audio.play()
+    } catch {
+      speakWithBrowser(cleaned)
+    }
+  }
 
   const onAsk = () => {
     if (!question.trim()) return
+    stopSpeaking()
 
     startTransition(async () => {
       const response = await onTestDomainBot(domainId, question)
@@ -54,9 +123,21 @@ const TestBotPlayground = ({ domainId }: { domainId: string }) => {
           <div className="rounded-2xl border border-border bg-muted/20 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-gravel">Preview response</p>
-              <span className="rounded-full bg-orange/10 px-2.5 py-1 text-xs font-semibold text-orange">
-                {usedSources} sources used
-              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onPlayVoice}
+                  className="h-7 gap-1.5 rounded-full px-3 text-xs"
+                >
+                  {speaking ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                  {speaking ? 'Stop' : 'Play voice'}
+                </Button>
+                <span className="rounded-full bg-orange/10 px-2.5 py-1 text-xs font-semibold text-orange">
+                  {usedSources} sources used
+                </span>
+              </div>
             </div>
             <p className="whitespace-pre-wrap text-sm leading-6 text-gravel">{answer}</p>
             {citations.length > 0 && (

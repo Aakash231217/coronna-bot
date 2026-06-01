@@ -106,9 +106,12 @@ const MascotStudio = ({ selectedPersona }: MascotStudioProps) => {
     scene.add(mascot)
 
     const isVoice = selectedPersona === 'voice'
+    const isFriendly = selectedPersona === 'friendly'
+    const isPro = selectedPersona === 'pro'
     const skinMaterial = new THREE.MeshStandardMaterial({ color: skinTone, roughness: 0.52 })
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.66, 64, 64), skinMaterial)
-    head.scale.set(selectedPersona === 'mascot' ? 0.98 : 0.9, selectedPersona === 'mascot' ? 0.98 : 1.06, 0.86)
+    const headRound = selectedPersona === 'mascot' || isFriendly
+    head.scale.set(headRound ? 0.98 : 0.9, headRound ? 0.98 : 1.06, 0.86)
     mascot.add(head)
 
     addHair(mascot, hairStyle, hairColor)
@@ -122,6 +125,30 @@ const MascotStudio = ({ selectedPersona }: MascotStudioProps) => {
       mic.rotation.z = -0.75
       mic.position.set(0.46, -0.02, 0.46)
       mascot.add(mic)
+    }
+    if (isFriendly) {
+      const capMaterial = new THREE.MeshStandardMaterial({ color: '#2faf6b', roughness: 0.5 })
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.56, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2.4), capMaterial)
+      cap.scale.set(1.05, 0.6, 1)
+      cap.position.set(0, 0.42, 0.02)
+      mascot.add(cap)
+      const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.04, 32, 1, false, 0, Math.PI), capMaterial)
+      brim.position.set(0, 0.34, 0.46)
+      brim.rotation.x = -0.1
+      mascot.add(brim)
+    }
+    if (isPro) {
+      const glassMaterial = new THREE.MeshStandardMaterial({ color: '#202733', roughness: 0.3, metalness: 0.2 })
+      const leftLens = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 12, 32), glassMaterial)
+      leftLens.position.set(-0.22, 0.14, 0.5)
+      mascot.add(leftLens)
+      const rightLens = leftLens.clone()
+      rightLens.position.x = 0.22
+      mascot.add(rightLens)
+      const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.16, 8), glassMaterial)
+      bridge.rotation.z = Math.PI / 2
+      bridge.position.set(0, 0.14, 0.5)
+      mascot.add(bridge)
     }
 
     const leftEar = new THREE.Mesh(new THREE.SphereGeometry(0.12, 24, 24), skinMaterial)
@@ -150,9 +177,18 @@ const MascotStudio = ({ selectedPersona }: MascotStudioProps) => {
     neck.position.set(0, -0.78, 0)
     mascot.add(neck)
 
+    const bodyColor = isVoice
+      ? '#44306f'
+      : selectedPersona === 'mascot'
+        ? '#ff8f3d'
+        : isFriendly
+          ? '#2faf6b'
+          : isPro
+            ? '#7c1d1d'
+            : '#242c42'
     const body = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.54, 0.55, 8, 32),
-      new THREE.MeshStandardMaterial({ color: isVoice ? '#44306f' : selectedPersona === 'mascot' ? '#ff8f3d' : '#242c42', roughness: 0.6 })
+      new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.6 })
     )
     body.position.set(0, -1.23, 0)
     body.scale.set(1.18, 0.9, 0.75)

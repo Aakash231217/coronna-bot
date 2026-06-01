@@ -39,6 +39,18 @@ const personaOptions = [
     description: 'Talk-ready support bot',
     accent: 'from-violet-100 to-fuchsia-200',
   },
+  {
+    id: 'friendly',
+    name: 'Friendly Buddy',
+    description: 'Playful, casual helper',
+    accent: 'from-emerald-100 to-green-200',
+  },
+  {
+    id: 'pro',
+    name: 'Pro Executive',
+    description: 'Sharp business closer',
+    accent: 'from-rose-100 to-red-200',
+  },
 ] satisfies { id: BotPersona; name: string; description: string; accent: string }[]
 
 const EditChatbotIcon = ({
@@ -54,7 +66,7 @@ const EditChatbotIcon = ({
         label="Bot identity"
         message="Pick a polished personality style, then tune skin tone and hair in the live mascot studio."
       />
-      <div className="grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid w-full max-w-[680px] grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {personaOptions.map((persona, index) => (
           <button
             key={persona.name}
@@ -76,6 +88,8 @@ const EditChatbotIcon = ({
                   <div className="absolute right-[18px] top-[23px] h-1.5 w-1.5 rounded-full bg-gray-800" />
                   <div className="absolute bottom-[15px] left-1/2 h-2 w-5 -translate-x-1/2 rounded-b-full border-b-2 border-gray-800" />
                   {persona.id === 'voice' && <div className="absolute -right-1 bottom-2 h-4 w-4 rounded-full bg-orange shadow" />}
+                  {persona.id === 'friendly' && <div className="absolute -top-1 right-2 h-3 w-3 rotate-45 rounded-sm bg-emerald-400 shadow" />}
+                  {persona.id === 'pro' && <div className="absolute -top-1 left-1/2 h-2 w-6 -translate-x-1/2 rounded-full bg-red-500 shadow" />}
                 </div>
               )}
             </div>
