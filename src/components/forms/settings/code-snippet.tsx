@@ -29,6 +29,7 @@ const CodeSnippet = ({ id }: Props) => {
         position: fixed;
         bottom: 50px;
         right: 50px;
+        left: auto;
         border: none;
       }
     \`);
@@ -79,6 +80,13 @@ const CodeSnippet = ({ id }: Props) => {
       let dimensions = JSON.parse(e.data);
       iframe.width = dimensions.width;
       iframe.height = dimensions.height;
+      if (dimensions.position === 'left') {
+        iframe.style.left = '50px';
+        iframe.style.right = 'auto';
+      } else {
+        iframe.style.right = '50px';
+        iframe.style.left = 'auto';
+      }
       iframe.contentWindow.postMessage("${id}", "${baseUrl}/");
     });
         `

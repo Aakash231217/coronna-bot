@@ -32,6 +32,11 @@ export const useChatBot = () => {
           welcomeMessage: string | null
           background: string | null
           textColor: string | null
+          launcherPosition: string
+          launcherSize: number
+          widgetTheme: string
+          starterPrompts: string[]
+          showBranding: boolean
           helpdesk: boolean
         } | null
         helpdesk: {
@@ -162,13 +167,15 @@ export const useChatBot = () => {
   }, [onChats, messageWindowRef])
 
   useEffect(() => {
+    const launcherSize = currentBot?.chatBot?.launcherSize || 72
     postToParent(
       JSON.stringify({
-        width: botOpened ? 550 : 80,
-        height: botOpened ? 800 : 80,
+        width: botOpened ? 420 : launcherSize,
+        height: botOpened ? 640 : launcherSize,
+        position: currentBot?.chatBot?.launcherPosition || 'right',
       })
     )
-  }, [botOpened])
+  }, [botOpened, currentBot?.chatBot?.launcherPosition, currentBot?.chatBot?.launcherSize])
 
   let limitRequest = 0
 
