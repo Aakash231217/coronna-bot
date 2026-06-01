@@ -40,11 +40,6 @@ export const SIDE_BAR_MENU: SIDE_BAR_MENU_PROPS[] = [
     icon: <CalIcon />,
     path: 'appointment',
   },
-  {
-    label: 'Email Marketing',
-    icon: <EmailIcon />,
-    path: 'email-marketing',
-  },
 ]
 
 type TABS_MENU_PROPS = {
@@ -86,8 +81,6 @@ export const APPOINTMENT_TABLE_HEADER = [
   'Added Time',
   'Domain',
 ]
-
-export const EMAIL_MARKETING_HEADER = ['Id', 'Email', 'Answers', 'Domain']
 
 export const BOT_TABS_MENU: TABS_MENU_PROPS[] = [
   {

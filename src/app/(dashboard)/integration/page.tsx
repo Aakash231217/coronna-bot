@@ -1,6 +1,6 @@
 import InfoBar from '@/components/infobar'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
-import { BadgeCheck, Globe2, Mail, MessageSquare, Sparkles } from 'lucide-react'
+import { BadgeCheck, Globe2, MessageSquare, Sparkles } from 'lucide-react'
 
 const IntegrationsPage = async () => {
   return (
@@ -23,7 +23,6 @@ const IntegrationsPage = async () => {
             {[
               [Globe2, 'Website widget', 'Embed your chatbot on any domain with the generated script.'],
               [MessageSquare, 'Live conversations', 'Follow up with visitors from the conversations dashboard.'],
-              [Mail, 'Email marketing', 'Locked for now while the new campaign flow is rebuilt.'],
             ].map(([Icon, title, copy]) => (
               <Card key={title as string} className="rounded-2xl">
                 <CardContent className="p-5">
