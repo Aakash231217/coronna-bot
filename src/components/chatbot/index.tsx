@@ -25,6 +25,9 @@ const AiChatBot = (props: Props) => {
     voiceEnabled,
     speaking,
     onToggleVoice,
+    listening,
+    speechSupported,
+    onToggleListening,
   } = useChatBot()
 
   return (
@@ -50,6 +53,9 @@ const AiChatBot = (props: Props) => {
           voiceEnabled={voiceEnabled}
           speaking={speaking}
           onToggleVoice={onToggleVoice}
+          listening={listening}
+          speechSupported={speechSupported}
+          onToggleListening={onToggleListening}
         />
       )}
       <div

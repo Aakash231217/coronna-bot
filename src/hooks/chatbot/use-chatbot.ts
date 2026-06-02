@@ -19,6 +19,7 @@ export const useChatBot = () => {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ChatBotMessageProps>({
     resolver: zodResolver(ChatBotMessageSchema),
@@ -50,11 +51,15 @@ export const useChatBot = () => {
   >()
   const messageWindowRef = useRef<HTMLDivElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const recognitionRef = useRef<any>(null)
+  const welcomeSpokenRef = useRef<boolean>(false)
   const [botOpened, setBotOpened] = useState<boolean>(false)
   const onOpenChatBot = () => setBotOpened((prev) => !prev)
   const [loading, setLoading] = useState<boolean>(true)
   const [voiceEnabled, setVoiceEnabled] = useState<boolean>(true)
   const [speaking, setSpeaking] = useState<boolean>(false)
+  const [listening, setListening] = useState<boolean>(false)
+  const [speechSupported, setSpeechSupported] = useState<boolean>(false)
   const [onChats, setOnChats] = useState<
     { role: 'assistant' | 'user'; content: string; link?: string }[]
   >([])
@@ -74,9 +79,14 @@ export const useChatBot = () => {
 
   const onToggleVoice = () => {
     setVoiceEnabled((prev) => {
-      if (prev && audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
+      if (prev) {
+        if (audioRef.current) {
+          audioRef.current.pause()
+          audioRef.current = null
+        }
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel()
+        }
         setSpeaking(false)
       }
       return !prev
@@ -162,6 +172,83 @@ export const useChatBot = () => {
     }
   }
 
+  // --- Speech-to-text (voice input) -----------------------------------------
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setSpeechSupported(false)
+      return
+    }
+    setSpeechSupported(true)
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'en-US'
+    recognition.interimResults = false
+    recognition.continuous = false
+    recognition.maxAlternatives = 1
+    recognitionRef.current = recognition
+
+    return () => {
+      try {
+        recognition.abort()
+      } catch {}
+      recognitionRef.current = null
+    }
+  }, [])
+
+  const onStopListening = () => {
+    try {
+      recognitionRef.current?.stop()
+    } catch {}
+    setListening(false)
+  }
+
+  const onStartListening = () => {
+    const recognition = recognitionRef.current
+    if (!recognition) return
+
+    // Don't let the bot talk over the user while they speak
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    setSpeaking(false)
+
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results)
+        .map((result: any) => result[0]?.transcript ?? '')
+        .join(' ')
+        .trim()
+      if (transcript) {
+        setValue('content', transcript, { shouldValidate: true })
+        // submit the recognised speech as a normal message
+        onStartChatting()
+      }
+    }
+    recognition.onerror = () => setListening(false)
+    recognition.onend = () => setListening(false)
+
+    try {
+      recognition.start()
+      setListening(true)
+    } catch {
+      setListening(false)
+    }
+  }
+
+  const onToggleListening = () => {
+    if (listening) {
+      onStopListening()
+    } else {
+      onStartListening()
+    }
+  }
+
   useEffect(() => {
     onScrollToBottom()
   }, [onChats, messageWindowRef])
@@ -176,6 +263,20 @@ export const useChatBot = () => {
       })
     )
   }, [botOpened, currentBot?.chatBot?.launcherPosition, currentBot?.chatBot?.launcherSize])
+
+  // Auto-greet: speak the welcome message aloud as soon as the chat is opened.
+  // Opening the widget is a user gesture, so browsers allow audio playback here.
+  useEffect(() => {
+    if (
+      botOpened &&
+      voiceEnabled &&
+      !welcomeSpokenRef.current &&
+      currentBot?.chatBot?.welcomeMessage
+    ) {
+      welcomeSpokenRef.current = true
+      onSpeakAssistantReply(currentBot.chatBot.welcomeMessage)
+    }
+  }, [botOpened, voiceEnabled, currentBot?.chatBot?.welcomeMessage])
 
   let limitRequest = 0
 
@@ -326,6 +427,9 @@ export const useChatBot = () => {
     voiceEnabled,
     speaking,
     onToggleVoice,
+    listening,
+    speechSupported,
+    onToggleListening,
   }
 }
 

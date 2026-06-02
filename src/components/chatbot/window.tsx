@@ -13,7 +13,7 @@ import Bubble from './bubble'
 import { Responding } from './responding'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
-import { Paperclip, Send, Volume2, VolumeX } from 'lucide-react'
+import { Mic, MicOff, Paperclip, Send, Volume2, VolumeX } from 'lucide-react'
 import { Label } from '../ui/label'
 import { CardDescription, CardTitle } from '../ui/card'
 import Accordion from '../accordian'
@@ -57,6 +57,9 @@ type Props = {
   voiceEnabled: boolean
   speaking: boolean
   onToggleVoice(): void
+  listening: boolean
+  speechSupported: boolean
+  onToggleListening(): void
 }
 
 export const BotWindow = forwardRef<HTMLDivElement, Props>(
@@ -80,6 +83,9 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
       voiceEnabled,
       speaking,
       onToggleVoice,
+      listening,
+      speechSupported,
+      onToggleListening,
     },
     ref
   ) => {
@@ -163,12 +169,22 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
                 onSubmit={onChat}
                 className="flex px-3 py-1 flex-col flex-1 bg-porcelain"
               >
-                <div className="flex justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <Input
                     {...register('content')}
-                    placeholder="Type your message..."
+                    placeholder={listening ? 'Listening…' : 'Type your message...'}
                     className="focus-visible:ring-0 flex-1 p-0 focus-visible:ring-offset-0 bg-porcelain rounded-none outline-none border-none"
                   />
+                  {speechSupported && (
+                    <Button
+                      type="button"
+                      onClick={onToggleListening}
+                      title={listening ? 'Stop listening' : 'Speak your message'}
+                      className={`mt-3 ${listening ? 'animate-pulse bg-red-500 hover:bg-red-600' : ''}`}
+                    >
+                      {listening ? <MicOff /> : <Mic />}
+                    </Button>
+                  )}
                   <Button
                     type="submit"
                     className="mt-3"
