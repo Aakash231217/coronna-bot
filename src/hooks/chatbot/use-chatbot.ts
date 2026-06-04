@@ -52,7 +52,6 @@ export const useChatBot = () => {
   const messageWindowRef = useRef<HTMLDivElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const recognitionRef = useRef<any>(null)
-  const welcomeSpokenRef = useRef<boolean>(false)
   const [botOpened, setBotOpened] = useState<boolean>(false)
   const onOpenChatBot = () => setBotOpened((prev) => !prev)
   const [loading, setLoading] = useState<boolean>(true)
@@ -264,17 +263,22 @@ export const useChatBot = () => {
     )
   }, [botOpened, currentBot?.chatBot?.launcherPosition, currentBot?.chatBot?.launcherSize])
 
-  // Auto-greet: speak the welcome message aloud as soon as the chat is opened.
+  // Auto-greet: speak the welcome message aloud every time the chat is opened.
   // Opening the widget is a user gesture, so browsers allow audio playback here.
   useEffect(() => {
-    if (
-      botOpened &&
-      voiceEnabled &&
-      !welcomeSpokenRef.current &&
-      currentBot?.chatBot?.welcomeMessage
-    ) {
-      welcomeSpokenRef.current = true
+    if (botOpened && voiceEnabled && currentBot?.chatBot?.welcomeMessage) {
       onSpeakAssistantReply(currentBot.chatBot.welcomeMessage)
+    }
+    // When the widget closes, stop any ongoing speech.
+    if (!botOpened) {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+      setSpeaking(false)
     }
   }, [botOpened, voiceEnabled, currentBot?.chatBot?.welcomeMessage])
 

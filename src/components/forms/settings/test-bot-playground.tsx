@@ -3,8 +3,8 @@
 import { onTestDomainBot } from '@/actions/settings'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
-import { Bot, Loader2, Send, Volume2, VolumeX } from 'lucide-react'
-import React, { useRef, useState, useTransition } from 'react'
+import { Bot, Loader2, Mic, MicOff, Send, Volume2, VolumeX } from 'lucide-react'
+import React, { useEffect, useRef, useState, useTransition } from 'react'
 
 const TestBotPlayground = ({ domainId }: { domainId: string }) => {
   const [question, setQuestion] = useState('')
@@ -12,8 +12,11 @@ const TestBotPlayground = ({ domainId }: { domainId: string }) => {
   const [citations, setCitations] = useState<string[]>([])
   const [usedSources, setUsedSources] = useState(0)
   const [speaking, setSpeaking] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(false)
   const [isPending, startTransition] = useTransition()
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const recognitionRef = useRef<any>(null)
 
   const speakWithBrowser = (text: string) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
@@ -41,12 +44,8 @@ const TestBotPlayground = ({ domainId }: { domainId: string }) => {
     setSpeaking(false)
   }
 
-  const onPlayVoice = async () => {
-    if (speaking) {
-      stopSpeaking()
-      return
-    }
-    const cleaned = answer.replace('(complete)', '').trim()
+  const speak = async (text: string) => {
+    const cleaned = text.replace('(complete)', '').trim()
     if (!cleaned) return
 
     try {
@@ -81,16 +80,90 @@ const TestBotPlayground = ({ domainId }: { domainId: string }) => {
     }
   }
 
-  const onAsk = () => {
-    if (!question.trim()) return
+  const onPlayVoice = () => {
+    if (speaking) {
+      stopSpeaking()
+      return
+    }
+    speak(answer)
+  }
+
+  const onAsk = (spoken?: string) => {
+    const q = (spoken ?? question).trim()
+    if (!q) return
     stopSpeaking()
 
     startTransition(async () => {
-      const response = await onTestDomainBot(domainId, question)
-      setAnswer(response.status === 200 ? response.answer || '' : response.message || 'Unable to test bot.')
+      const response = await onTestDomainBot(domainId, q)
+      const reply =
+        response.status === 200
+          ? response.answer || ''
+          : response.message || 'Unable to test bot.'
+      setAnswer(reply)
       setCitations(response.status === 200 ? response.citations || [] : [])
       setUsedSources(response.status === 200 ? response.usedSources || 0 : 0)
+      // Auto-speak the answer as soon as it arrives.
+      if (reply) speak(reply)
     })
+  }
+
+  // --- Speech-to-text (voice input) -----------------------------------------
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setSpeechSupported(false)
+      return
+    }
+    setSpeechSupported(true)
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'en-US'
+    recognition.interimResults = false
+    recognition.continuous = false
+    recognition.maxAlternatives = 1
+    recognitionRef.current = recognition
+
+    return () => {
+      try {
+        recognition.abort()
+      } catch {}
+      recognitionRef.current = null
+    }
+  }, [])
+
+  const onToggleListening = () => {
+    const recognition = recognitionRef.current
+    if (!recognition) return
+    if (listening) {
+      try {
+        recognition.stop()
+      } catch {}
+      setListening(false)
+      return
+    }
+
+    stopSpeaking()
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results)
+        .map((result: any) => result[0]?.transcript ?? '')
+        .join(' ')
+        .trim()
+      if (transcript) {
+        setQuestion(transcript)
+        onAsk(transcript)
+      }
+    }
+    recognition.onerror = () => setListening(false)
+    recognition.onend = () => setListening(false)
+
+    try {
+      recognition.start()
+      setListening(true)
+    } catch {
+      setListening(false)
+    }
   }
 
   return (
@@ -110,13 +183,31 @@ const TestBotPlayground = ({ domainId }: { domainId: string }) => {
           <textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder="Ask the bot something from your trained sources..."
+            placeholder={
+              listening
+                ? 'Listening… speak now'
+                : 'Ask the bot something from your trained sources...'
+            }
             className="min-h-[96px] rounded-xl border border-border px-3 py-2 text-sm outline-none focus:border-orange"
           />
-          <Button type="button" onClick={onAsk} disabled={isPending} className="w-fit">
-            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-            Test answer
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button type="button" onClick={() => onAsk()} disabled={isPending} className="w-fit">
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+              Test answer
+            </Button>
+            {speechSupported && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onToggleListening}
+                disabled={isPending}
+                className={`w-fit gap-1.5 ${listening ? 'animate-pulse border-red-500 text-red-500' : ''}`}
+              >
+                {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                {listening ? 'Stop' : 'Speak'}
+              </Button>
+            )}
+          </div>
         </div>
 
         {answer && (
