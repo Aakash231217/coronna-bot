@@ -36,6 +36,9 @@ const CodeSnippet = ({ id }: Props) => {
 
     iframe.src = "${baseUrl}/chatbot";
     iframe.classList.add('chat-frame');
+    // Allow the embedded widget to speak (autoplay) and listen (microphone)
+    iframe.allow = "microphone; autoplay; clipboard-write";
+    iframe.setAttribute('allowtransparency', 'true');
     document.body.appendChild(iframe);
 
     // Behavior tracker — auto-open bot when user looks stuck

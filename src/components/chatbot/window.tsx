@@ -1,7 +1,6 @@
 import { ChatBotMessageProps } from '@/schemas/conversation.schema'
 import React, { forwardRef } from 'react'
 import { UseFormRegister } from 'react-hook-form'
-import { Avatar, AvatarFallback } from '../ui/avatar'
 import RealTimeMode from './real-time'
 import Image from 'next/image'
 import TabsMenu from '../tabs/intex'
@@ -18,7 +17,7 @@ import { Label } from '../ui/label'
 import { CardDescription, CardTitle } from '../ui/card'
 import Accordion from '../accordian'
 import UploadButton from '../upload-button'
-import BotFace3D from './bot-face-3d'
+import BotAvatar3D from './bot-avatar-3d'
 
 type Props = {
   errors: any
@@ -94,11 +93,9 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
       <div className={`mr-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-3xl border border-border shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)] ${widgetTheme === 'dark' ? 'bg-[#111827] text-white' : 'bg-card'}`}>
         <div className="flex items-center justify-between gap-3 border-b border-border bg-brand-gradient px-5 py-4 text-white">
           <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 ring-2 ring-white/40">
-              <AvatarFallback className="bg-white/20">
-                <BotFace3D size={40} />
-              </AvatarFallback>
-            </Avatar>
+            <div className="h-12 w-12 overflow-hidden rounded-full ring-2 ring-white/40">
+              <BotAvatar3D size={48} speaking={speaking} />
+            </div>
             <div className="flex flex-col">
               <h3 className="text-sm font-semibold leading-tight">
                 Corinna AI Sales Rep

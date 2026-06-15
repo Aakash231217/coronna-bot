@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { Bot, Loader2, Mic, MicOff, Send, Volume2, VolumeX } from 'lucide-react'
 import React, { useEffect, useRef, useState, useTransition } from 'react'
+import BotAvatar3D from '@/components/chatbot/bot-avatar-3d'
 
 const TestBotPlayground = ({ domainId }: { domainId: string }) => {
   const [question, setQuestion] = useState('')
@@ -169,14 +170,19 @@ const TestBotPlayground = ({ domainId }: { domainId: string }) => {
   return (
     <Card className="rounded-2xl">
       <CardContent className="grid gap-5 p-5">
-        <div>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Bot className="h-5 w-5 text-orange" />
-            Test bot before publishing
-          </CardTitle>
-          <CardDescription className="mt-1">
-            Ask a question without creating a customer, chat room or public conversation.
-          </CardDescription>
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-grandis">
+            <BotAvatar3D size={64} speaking={speaking} />
+          </div>
+          <div>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Bot className="h-5 w-5 text-orange" />
+              Test bot before publishing
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Ask a question without creating a customer, chat room or public conversation.
+            </CardDescription>
+          </div>
         </div>
 
         <div className="grid gap-3">

@@ -4,7 +4,7 @@ import React from 'react'
 import { BotWindow } from './window'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
-import BotFace3D from './bot-face-3d'
+import BotAvatar3D from './bot-avatar-3d'
 
 type Props = {}
 
@@ -76,7 +76,10 @@ const AiChatBot = (props: Props) => {
             fill
           />
         ) : (
-          <BotFace3D size={72} />
+          <BotAvatar3D
+            size={currentBot?.chatBot?.launcherSize || 72}
+            speaking={speaking}
+          />
         )}
       </div>
     </div>
