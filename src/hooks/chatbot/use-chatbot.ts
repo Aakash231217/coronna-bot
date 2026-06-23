@@ -1,4 +1,4 @@
-import { onAiChatBotAssistant, onGetCurrentChatBot } from '@/actions/bot'
+import { onAiChatBotAssistant, onCreateAnonymousSession, onGetCurrentChatBot } from '@/actions/bot'
 import { postToParent, pusherClient } from '@/lib/utils'
 import {
   ChatBotMessageProps,
@@ -53,17 +53,28 @@ export const useChatBot = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const recognitionRef = useRef<any>(null)
   const [botOpened, setBotOpened] = useState<boolean>(false)
-  const onOpenChatBot = () => setBotOpened((prev) => !prev)
+  const onOpenChatBot = () =>
+    setBotOpened((prev) => {
+      if (prev) setModePicked(false) // reset mode picker when closing
+      return !prev
+    })
   const [loading, setLoading] = useState<boolean>(true)
   const [voiceEnabled, setVoiceEnabled] = useState<boolean>(true)
   const [speaking, setSpeaking] = useState<boolean>(false)
   const [listening, setListening] = useState<boolean>(false)
   const [speechSupported, setSpeechSupported] = useState<boolean>(false)
+  const [modePicked, setModePicked] = useState<boolean>(false)
+
+  const onPickMode = (voiceAndChat: boolean) => {
+    setVoiceEnabled(voiceAndChat)
+    setModePicked(true)
+  }
   const [onChats, setOnChats] = useState<
     { role: 'assistant' | 'user'; content: string; link?: string }[]
   >([])
   const [onAiTyping, setOnAiTyping] = useState<boolean>(false)
   const [currentBotId, setCurrentBotId] = useState<string>()
+  const [sessionChatRoomId, setSessionChatRoomId] = useState<string | undefined>()
   const [onRealTime, setOnRealTime] = useState<
     { chatroom: string; mode: boolean } | undefined
   >(undefined)
@@ -286,7 +297,13 @@ export const useChatBot = () => {
 
   const onGetDomainChatBot = async (id: string) => {
     setCurrentBotId(id)
-    const chatbot = await onGetCurrentChatBot(id)
+    const [chatbot, session] = await Promise.all([
+      onGetCurrentChatBot(id),
+      onCreateAnonymousSession(id),
+    ])
+    if (session?.chatRoomId) {
+      setSessionChatRoomId(session.chatRoomId)
+    }
     if (chatbot) {
       setOnChats((prev) => [
         ...prev,
@@ -360,7 +377,8 @@ export const useChatBot = () => {
         currentBotId!,
         onChats,
         'user',
-        uploaded.uuid
+        uploaded.uuid,
+        sessionChatRoomId
       )
 
       if (response) {
@@ -396,7 +414,8 @@ export const useChatBot = () => {
         currentBotId!,
         onChats,
         'user',
-        values.content
+        values.content,
+        sessionChatRoomId
       )
 
       if (response) {
@@ -434,6 +453,8 @@ export const useChatBot = () => {
     listening,
     speechSupported,
     onToggleListening,
+    modePicked,
+    onPickMode,
   }
 }
 

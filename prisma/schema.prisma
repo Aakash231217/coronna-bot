@@ -109,6 +109,7 @@ model ChatBot {
   starterPrompts   String[] @default([])
   showBranding     Boolean @default(true)
   helpdesk       Boolean @default(false)
+  behaviorMode   String  @default("sales")
   Domain         Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
   domainId       String? @unique @db.Uuid
 }
@@ -187,7 +188,8 @@ model CustomerResponses {
 
 model Customer {
   id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email String? 
+  email String?
+  phone String?
 
   questions CustomerResponses[]
 

@@ -750,6 +750,7 @@ export const onUpdateWidgetSettings = async (
     widgetTheme: string
     showBranding: boolean
     starterPrompts: string[]
+    behaviorMode?: string
   }
 ) => {
   try {
@@ -761,6 +762,7 @@ export const onUpdateWidgetSettings = async (
         widgetTheme: settings.widgetTheme,
         showBranding: settings.showBranding,
         starterPrompts: settings.starterPrompts.filter(Boolean).slice(0, 4),
+        ...(settings.behaviorMode ? { behaviorMode: settings.behaviorMode } : {}),
       },
     })
 

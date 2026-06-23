@@ -44,6 +44,29 @@ export const onStoreConversations = async (
   })
 }
 
+export const onCreateAnonymousSession = async (domainId: string) => {
+  try {
+    const customer = await client.customer.create({
+      data: {
+        email: null,
+        domainId,
+        chatRoom: { create: {} },
+      },
+      select: {
+        id: true,
+        chatRoom: { select: { id: true }, take: 1 },
+      },
+    })
+    return {
+      customerId: customer.id,
+      chatRoomId: customer.chatRoom[0]?.id,
+    }
+  } catch (error) {
+    console.log(error)
+    return null
+  }
+}
+
 export const onGetCurrentChatBot = async (id: string) => {
   try {
     const chatbot = await client.domain.findUnique({
@@ -66,6 +89,7 @@ export const onGetCurrentChatBot = async (id: string) => {
             starterPrompts: true,
             showBranding: true,
             helpdesk: true,
+            behaviorMode: true,
           },
         },
       },
@@ -79,7 +103,12 @@ export const onGetCurrentChatBot = async (id: string) => {
   }
 }
 
-let customerEmail: string | undefined
+const BEHAVIOR_PROMPTS: Record<string, string> = {
+  sales: `Your primary goal is to identify buying intent, highlight product/service value, and guide the customer toward a purchase or booking. Be persuasive yet respectful.`,
+  helping: `Your primary goal is to assist the customer as thoroughly as possible. Focus on solving their problems, answering questions accurately, and making them feel supported.`,
+  talkative: `Be warm, friendly, and conversational. Engage the customer with light small talk when appropriate, while still being helpful. Make the interaction enjoyable.`,
+  lead_nurturing: `Your primary goal is to build trust and a long-term relationship. Ask thoughtful questions to understand the customer's needs, educate them about the business, and gently guide them toward becoming a qualified lead.`,
+}
 
 const buildRagContext = async (domainId: string, message: string) => {
   const chunks = await onSearchDomainKnowledge(domainId, message, 4)
@@ -107,7 +136,8 @@ export const onAiChatBotAssistant = async (
   id: string,
   chat: { role: 'assistant' | 'user'; content: string }[],
   author: 'user',
-  message: string
+  message: string,
+  chatRoomId?: string
 ) => {
   try {
     const chatBotDomain = await client.domain.findUnique({
@@ -118,6 +148,9 @@ export const onAiChatBotAssistant = async (
         name: true,
         description: true,
         knowledgeBase: true,
+        chatBot: {
+          select: { behaviorMode: true },
+        },
         filterQuestions: {
           where: {
             answered: null,
@@ -129,10 +162,20 @@ export const onAiChatBotAssistant = async (
       },
     })
     if (chatBotDomain) {
+      const behaviorMode = chatBotDomain.chatBot?.behaviorMode || 'sales'
+      const behaviorInstruction = BEHAVIOR_PROMPTS[behaviorMode] || BEHAVIOR_PROMPTS.sales
       const rag = await buildRagContext(id, message)
-      const extractedEmail = extractEmailsFromString(message)
-      if (extractedEmail) {
-        customerEmail = extractedEmail[0]
+
+      // Derive email from full chat history so no state leaks between users
+      let customerEmail: string | undefined
+      for (const msg of [...chat, { role: 'user', content: message }]) {
+        if (msg.role === 'user') {
+          const found = extractEmailsFromString(msg.content)
+          if (found?.[0]) {
+            customerEmail = found[0]
+            break
+          }
+        }
       }
 
       if (customerEmail) {
@@ -169,20 +212,40 @@ export const onAiChatBotAssistant = async (
           },
         })
         if (checkCustomer && !checkCustomer.customer.length) {
+          // If there's an anonymous session chat room, promote it to this customer.
+          // Otherwise create a fresh customer + chat room.
+          if (chatRoomId) {
+            const anonRoom = await client.chatRoom.findUnique({
+              where: { id: chatRoomId },
+              select: { customerId: true },
+            })
+            if (anonRoom?.customerId) {
+              await client.customer.update({
+                where: { id: anonRoom.customerId },
+                data: {
+                  email: customerEmail,
+                  domainId: id,
+                  questions: { create: chatBotDomain.filterQuestions },
+                },
+              })
+              console.log('anonymous customer promoted with email', customerEmail)
+              const response = {
+                role: 'assistant',
+                content: `Welcome aboard ${customerEmail!.split('@')[0]}! I'm glad to connect with you. Is there anything you need help with?`,
+              }
+              await onStoreConversations(chatRoomId, response.content, 'assistant')
+              return { response }
+            }
+          }
+
           const newCustomer = await client.domain.update({
-            where: {
-              id,
-            },
+            where: { id },
             data: {
               customer: {
                 create: {
                   email: customerEmail,
-                  questions: {
-                    create: chatBotDomain.filterQuestions,
-                  },
-                  chatRoom: {
-                    create: {},
-                  },
+                  questions: { create: chatBotDomain.filterQuestions },
+                  chatRoom: { create: {} },
                 },
               },
             },
@@ -191,9 +254,7 @@ export const onAiChatBotAssistant = async (
             console.log('new customer made')
             const response = {
               role: 'assistant',
-              content: `Welcome aboard ${
-                customerEmail.split('@')[0]
-              }! I'm glad to connect with you. Is there anything you need help with?`,
+              content: `Welcome aboard ${customerEmail!.split('@')[0]}! I'm glad to connect with you. Is there anything you need help with?`,
             }
             return { response }
           }
@@ -244,21 +305,40 @@ export const onAiChatBotAssistant = async (
           author
         )
 
+        // Learn from past conversations: pull the last 10 stored messages for context
+        const pastMessages = await client.chatMessage.findMany({
+          where: { chatRoomId: checkCustomer?.customer[0].chatRoom[0].id },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: { message: true, role: true },
+        })
+        const pastContext =
+          pastMessages.length > 1
+            ? `\n\nPAST CONVERSATION HISTORY (learn from this to improve responses):\n${pastMessages
+                .reverse()
+                .map((m) => `${m.role === 'user' ? 'Customer' : 'Assistant'}: ${m.message}`)
+                .join('\n')}`
+            : ''
+
         const chatCompletion = await openai.chat.completions.create({
           messages: [
             {
               role: 'assistant',
               content: `
-              You are the AI sales assistant for ${chatBotDomain.name}.
+              You are the AI assistant for ${chatBotDomain.name}.
               ${chatBotDomain.description ? `Business summary: ${chatBotDomain.description}` : ''}
-              ${rag.context ? `Use these retrieved source chunks as the highest priority factual context. Cite them in your answer when useful.\n\nRETRIEVED SOURCES:\n${rag.context}` : chatBotDomain.knowledgeBase ? `Use the following knowledge base from the company website to answer factual questions accurately. Do not invent information that is not present here.\n\nKNOWLEDGE BASE:\n${chatBotDomain.knowledgeBase}` : ''}
 
-              You will get an array of questions that you must ask the customer. 
-              
-              Progress the conversation using those questions. 
-              
-              Whenever you ask a question from the array i need you to add a keyword at the end of the question (complete) this keyword is extremely important. 
-              
+              BEHAVIOR MODE: ${behaviorInstruction}
+
+              ${rag.context ? `Use these retrieved source chunks as the highest priority factual context. Cite them in your answer when useful.\n\nRETRIEVED SOURCES:\n${rag.context}` : chatBotDomain.knowledgeBase ? `Use the following knowledge base from the company website to answer factual questions accurately. Do not invent information that is not present here.\n\nKNOWLEDGE BASE:\n${chatBotDomain.knowledgeBase}` : ''}
+              ${pastContext}
+
+              You will get an array of questions that you must ask the customer.
+
+              Progress the conversation using those questions.
+
+              Whenever you ask a question from the array i need you to add a keyword at the end of the question (complete) this keyword is extremely important.
+
               Do not forget it.
 
               only add this keyword when your asking a question from the array of questions. No other question satisfies this condition
@@ -389,14 +469,17 @@ export const onAiChatBotAssistant = async (
           {
             role: 'assistant',
             content: `
-            You are the AI sales assistant for ${chatBotDomain.name}.
+            You are the AI assistant for ${chatBotDomain.name}.
             ${chatBotDomain.description ? `Business summary: ${chatBotDomain.description}` : ''}
+
+            BEHAVIOR MODE: ${behaviorInstruction}
+
             ${rag.context ? `Use these retrieved source chunks as the highest priority factual context. Cite them in your answer when useful.\n\nRETRIEVED SOURCES:\n${rag.context}` : chatBotDomain.knowledgeBase ? `Use the following knowledge base from the company website to answer factual questions accurately. Do not invent information that is not present here.\n\nKNOWLEDGE BASE:\n${chatBotDomain.knowledgeBase}` : ''}
 
-            Your goal is to have a natural, human-like conversation with the customer in order to understand their needs, provide relevant information based on the knowledge base above, and ultimately guide them towards making a purchase or redirect them to a link if they havent provided all relevant information.
+            Your goal is to have a natural, human-like conversation with the customer in order to understand their needs, provide relevant information based on the knowledge base above, and guide them appropriately.
             Right now you are talking to a customer for the first time. Start by giving them a warm welcome on behalf of ${chatBotDomain.name} and make them feel welcomed.
 
-            Your next task is lead the conversation naturally to get the customers email address. Be respectful and never break character
+            Your next task is to lead the conversation naturally to get the customers email address. Be respectful and never break character.
 
           `,
           },
@@ -417,6 +500,12 @@ export const onAiChatBotAssistant = async (
 
         if (!rag.hasRelevantSources && message.trim().endsWith('?')) {
           await onRecordUnansweredQuestion(id, message)
+        }
+
+        // Store in the anonymous session chat room if one exists
+        if (chatRoomId) {
+          await onStoreConversations(chatRoomId, message, 'user')
+          await onStoreConversations(chatRoomId, response.content, 'assistant')
         }
 
         return { response }

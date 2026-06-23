@@ -7,6 +7,13 @@ import { useToast } from '@/components/ui/use-toast'
 import { Settings2, Loader2 } from 'lucide-react'
 import React, { useState, useTransition } from 'react'
 
+const BEHAVIOR_OPTIONS = [
+  { value: 'sales', label: 'Sales', description: 'Focuses on converting visitors into customers' },
+  { value: 'helping', label: 'Helping', description: 'Prioritises solving problems and answering questions thoroughly' },
+  { value: 'talkative', label: 'Talkative', description: 'Warm, conversational and engaging' },
+  { value: 'lead_nurturing', label: 'Lead Nurturing', description: 'Builds trust and guides visitors to become qualified leads' },
+]
+
 type WidgetCustomizationPanelProps = {
   domainId: string
   chatBot: {
@@ -15,6 +22,7 @@ type WidgetCustomizationPanelProps = {
     widgetTheme?: string
     starterPrompts?: string[]
     showBranding?: boolean
+    behaviorMode?: string
   } | null
 }
 
@@ -23,6 +31,7 @@ const WidgetCustomizationPanel = ({ domainId, chatBot }: WidgetCustomizationPane
   const [launcherSize, setLauncherSize] = useState(chatBot?.launcherSize || 72)
   const [widgetTheme, setWidgetTheme] = useState(chatBot?.widgetTheme || 'light')
   const [showBranding, setShowBranding] = useState(chatBot?.showBranding ?? true)
+  const [behaviorMode, setBehaviorMode] = useState(chatBot?.behaviorMode || 'sales')
   const [starterPrompts, setStarterPrompts] = useState<string[]>(
     chatBot?.starterPrompts?.length
       ? chatBot.starterPrompts
@@ -43,6 +52,7 @@ const WidgetCustomizationPanel = ({ domainId, chatBot }: WidgetCustomizationPane
         widgetTheme,
         showBranding,
         starterPrompts,
+        behaviorMode,
       })
       toast({ title: response.status === 200 ? 'Saved' : 'Error', description: response.message })
     })
@@ -106,6 +116,28 @@ const WidgetCustomizationPanel = ({ domainId, chatBot }: WidgetCustomizationPane
             />
             Show powered-by branding
           </label>
+        </div>
+
+        <div className="grid gap-2">
+          <p className="text-sm font-semibold text-gravel">Bot behavior trigger</p>
+          <p className="text-xs text-muted-foreground">Controls how the AI approaches each conversation.</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {BEHAVIOR_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setBehaviorMode(opt.value)}
+                className={`rounded-xl border p-3 text-left text-sm transition ${
+                  behaviorMode === opt.value
+                    ? 'border-orange bg-orange/10 font-semibold text-orange'
+                    : 'border-border bg-white text-gravel hover:border-orange/50'
+                }`}
+              >
+                <span className="block font-medium">{opt.label}</span>
+                <span className="block text-xs text-muted-foreground">{opt.description}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="grid gap-2">

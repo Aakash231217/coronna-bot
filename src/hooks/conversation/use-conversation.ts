@@ -16,7 +16,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 export const useConversation = () => {
-  const { register, watch } = useForm({
+  const { register, watch, setValue } = useForm({
     resolver: zodResolver(ConversationSearchSchema),
     mode: 'onChange',
   })
@@ -36,18 +36,25 @@ export const useConversation = () => {
     }[]
   >([])
   const [loading, setLoading] = useState<boolean>(false)
+
+  const loadRooms = async (domainId: string) => {
+    if (!domainId) return
+    setLoading(true)
+    try {
+      const rooms = await onGetDomainChatRooms(domainId)
+      if (rooms) {
+        setChatRooms(rooms.customer.filter((c) => c.chatRoom[0]?.message[0]))
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     const search = watch(async (value) => {
-      setLoading(true)
-      try {
-        const rooms = await onGetDomainChatRooms(value.domain)
-        if (rooms) {
-          setLoading(false)
-          setChatRooms(rooms.customer)
-        }
-      } catch (error) {
-        console.log(error)
-      }
+      if (value.domain) loadRooms(value.domain)
     })
     return () => search.unsubscribe()
   }, [watch])
@@ -67,9 +74,11 @@ export const useConversation = () => {
   }
   return {
     register,
+    setValue,
     chatRooms,
     loading,
     onGetActiveChatMessages,
+    loadRooms,
   }
 }
 

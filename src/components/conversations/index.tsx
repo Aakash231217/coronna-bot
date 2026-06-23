@@ -1,6 +1,6 @@
 'use client'
 import { useConversation } from '@/hooks/conversation/use-conversation'
-import React from 'react'
+import React, { useEffect } from 'react'
 import TabsMenu from '../tabs/intex'
 import { TABS_MENU } from '@/constants/menu'
 import { TabsContent } from '../ui/tabs'
@@ -21,8 +21,16 @@ type Props = {
 }
 
 const ConversationMenu = ({ domains }: Props) => {
-  const { register, chatRooms, loading, onGetActiveChatMessages } =
+  const { register, setValue, chatRooms, loading, onGetActiveChatMessages, loadRooms } =
     useConversation()
+
+  // Auto-select the first domain so conversations load immediately
+  useEffect(() => {
+    if (domains?.[0]?.id) {
+      setValue('domain', domains[0].id)
+      loadRooms(domains[0].id)
+    }
+  }, [domains])
 
   return (
     <div className="py-3 px-0">

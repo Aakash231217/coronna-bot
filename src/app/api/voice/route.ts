@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const DEFAULT_VOICE_ID = '21m00Tcm4TlvDq8ikWAM'
+// "Rachel" (21m00Tcm4TlvDq8ikWAM) is the original default.
+// "Aria" (9BWtsMINqrJLrRacOk9x) is a clear, natural-sounding female voice.
+const DEFAULT_VOICE_ID = '9BWtsMINqrJLrRacOk9x'
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ELEVENLABS_API_KEY
@@ -27,11 +29,11 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         text: text.slice(0, 1200),
-        model_id: 'eleven_multilingual_v2',
+        model_id: 'eleven_turbo_v2_5',
         voice_settings: {
-          stability: 0.45,
-          similarity_boost: 0.8,
-          style: 0.25,
+          stability: 0.5,
+          similarity_boost: 0.85,
+          style: 0.2,
           use_speaker_boost: true,
         },
       }),
