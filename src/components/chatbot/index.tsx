@@ -28,8 +28,6 @@ const AiChatBot = (props: Props) => {
     listening,
     speechSupported,
     onToggleListening,
-    modePicked,
-    onPickMode,
   } = useChatBot()
 
   return (
@@ -58,8 +56,6 @@ const AiChatBot = (props: Props) => {
           listening={listening}
           speechSupported={speechSupported}
           onToggleListening={onToggleListening}
-          modePicked={modePicked}
-          onPickMode={onPickMode}
         />
       )}
       <div

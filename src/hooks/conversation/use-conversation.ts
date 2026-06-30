@@ -43,7 +43,7 @@ export const useConversation = () => {
     try {
       const rooms = await onGetDomainChatRooms(domainId)
       if (rooms) {
-        setChatRooms(rooms.customer.filter((c) => c.chatRoom[0]?.message[0]))
+        setChatRooms(rooms.customer.filter((c) => c.chatRoom.length > 0))
       }
     } catch (error) {
       console.log(error)

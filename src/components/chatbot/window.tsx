@@ -12,7 +12,7 @@ import Bubble from './bubble'
 import { Responding } from './responding'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
-import { MessageSquare, Mic, MicOff, Paperclip, Send, Volume2, VolumeX } from 'lucide-react'
+import { Mic, MicOff, Paperclip, Send, Volume2, VolumeX } from 'lucide-react'
 import { Label } from '../ui/label'
 import { CardDescription, CardTitle } from '../ui/card'
 import Accordion from '../accordian'
@@ -59,8 +59,6 @@ type Props = {
   listening: boolean
   speechSupported: boolean
   onToggleListening(): void
-  modePicked?: boolean
-  onPickMode?: (voiceAndChat: boolean) => void
 }
 
 export const BotWindow = forwardRef<HTMLDivElement, Props>(
@@ -87,52 +85,12 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
       listening,
       speechSupported,
       onToggleListening,
-      modePicked,
-      onPickMode,
     },
     ref
   ) => {
     console.log(errors)
-
-    if (!modePicked && onPickMode) {
-      return (
-        <div className={`mr-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-3xl border border-border shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)] ${widgetTheme === 'dark' ? 'bg-[#111827] text-white' : 'bg-card'}`}>
-          <div className="flex items-center gap-3 border-b border-border bg-brand-gradient px-5 py-4 text-white">
-            <div className="h-12 w-12 overflow-hidden rounded-full ring-2 ring-white/40">
-              <BotAvatar3D size={48} speaking={false} />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold leading-tight">Corinna AI Sales Rep</h3>
-              <p className="text-xs text-white/80">{domainName?.split('.com')[0] ?? 'Online'}</p>
-            </div>
-          </div>
-          <div className="flex flex-1 flex-col items-center justify-center gap-6 p-6">
-            <p className="text-center text-sm font-semibold text-gravel">Choose your experience</p>
-            <button
-              type="button"
-              onClick={() => onPickMode(true)}
-              className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-orange bg-orange/5 p-5 text-center transition hover:bg-orange/10"
-            >
-              <Volume2 className="h-7 w-7 text-orange" />
-              <span className="text-sm font-bold text-orange">Voice + Chat</span>
-              <span className="text-xs text-muted-foreground">Bot speaks its replies aloud. You can also type or speak.</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onPickMode(false)}
-              className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-border p-5 text-center transition hover:border-orange/40 hover:bg-orange/5"
-            >
-              <MessageSquare className="h-7 w-7 text-gravel" />
-              <span className="text-sm font-bold text-gravel">Chat only</span>
-              <span className="text-xs text-muted-foreground">Silent text conversation. No audio.</span>
-            </button>
-          </div>
-        </div>
-      )
-    }
-
     return (
-      <div className={`mr-6 flex h-[560px] w-[360px] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-3xl border border-border shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)] ${widgetTheme === 'dark' ? 'bg-[#111827] text-white' : 'bg-card'}`}>
+      <div className={`mr-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-3xl border border-border shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)] ${widgetTheme === 'dark' ? 'bg-[#111827] text-white' : 'bg-card'}`}>
         <div className="flex items-center justify-between gap-3 border-b border-border bg-brand-gradient px-5 py-4 text-white">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 overflow-hidden rounded-full ring-2 ring-white/40">
