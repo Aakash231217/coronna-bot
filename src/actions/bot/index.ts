@@ -90,6 +90,7 @@ export const onGetCurrentChatBot = async (id: string) => {
             showBranding: true,
             helpdesk: true,
             behaviorMode: true,
+            botMode: true,
           },
         },
       },

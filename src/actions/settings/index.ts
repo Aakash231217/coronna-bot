@@ -224,6 +224,8 @@ export const onGetCurrentDomainInfo = async (domain: string) => {
                 widgetTheme: true,
                 starterPrompts: true,
                 showBranding: true,
+                behaviorMode: true,
+                botMode: true,
               },
             },
           },
@@ -751,6 +753,7 @@ export const onUpdateWidgetSettings = async (
     showBranding: boolean
     starterPrompts: string[]
     behaviorMode?: string
+    botMode?: string
   }
 ) => {
   try {
@@ -763,6 +766,7 @@ export const onUpdateWidgetSettings = async (
         showBranding: settings.showBranding,
         starterPrompts: settings.starterPrompts.filter(Boolean).slice(0, 4),
         ...(settings.behaviorMode ? { behaviorMode: settings.behaviorMode } : {}),
+        ...(settings.botMode ? { botMode: settings.botMode } : {}),
       },
     })
 

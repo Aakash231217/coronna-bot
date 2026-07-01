@@ -59,6 +59,7 @@ type Props = {
   listening: boolean
   speechSupported: boolean
   onToggleListening(): void
+  botMode?: string
 }
 
 export const BotWindow = forwardRef<HTMLDivElement, Props>(
@@ -85,10 +86,12 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
       listening,
       speechSupported,
       onToggleListening,
+      botMode = 'both',
     },
     ref
   ) => {
     console.log(errors)
+    const voiceAllowed = botMode !== 'chat'
     return (
       <div className={`mr-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-3xl border border-border shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)] ${widgetTheme === 'dark' ? 'bg-[#111827] text-white' : 'bg-card'}`}>
         <div className="flex items-center justify-between gap-3 border-b border-border bg-brand-gradient px-5 py-4 text-white">
@@ -111,20 +114,22 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
               )}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onToggleVoice}
-            className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
-            title={voiceEnabled ? 'Mute voice replies' : 'Enable voice replies'}
-          >
-            {voiceEnabled ? (
-              <Volume2
-                className={`h-4 w-4 ${speaking ? 'animate-pulse' : ''}`}
-              />
-            ) : (
-              <VolumeX className="h-4 w-4" />
-            )}
-          </button>
+          {voiceAllowed && (
+            <button
+              type="button"
+              onClick={onToggleVoice}
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+              title={voiceEnabled ? 'Mute voice replies' : 'Enable voice replies'}
+            >
+              {voiceEnabled ? (
+                <Volume2
+                  className={`h-4 w-4 ${speaking ? 'animate-pulse' : ''}`}
+                />
+              ) : (
+                <VolumeX className="h-4 w-4" />
+              )}
+            </button>
+          )}
         </div>
         <TabsMenu
           triggers={BOT_TABS_MENU}
@@ -172,7 +177,7 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
                     placeholder={listening ? 'Listening…' : 'Type your message...'}
                     className="focus-visible:ring-0 flex-1 p-0 focus-visible:ring-offset-0 bg-porcelain rounded-none outline-none border-none"
                   />
-                  {speechSupported && (
+                  {voiceAllowed && speechSupported && (
                     <Button
                       type="button"
                       onClick={onToggleListening}

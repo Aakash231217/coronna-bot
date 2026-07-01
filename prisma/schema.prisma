@@ -110,6 +110,7 @@ model ChatBot {
   showBranding     Boolean @default(true)
   helpdesk       Boolean @default(false)
   behaviorMode   String  @default("sales")
+  botMode        String  @default("both") // "chat" | "voice" | "both"
   Domain         Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
   domainId       String? @unique @db.Uuid
 }

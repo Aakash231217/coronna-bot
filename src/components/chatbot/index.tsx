@@ -46,6 +46,7 @@ const AiChatBot = (props: Props) => {
           widgetTheme={currentBot?.chatBot?.widgetTheme}
           starterPrompts={currentBot?.chatBot?.starterPrompts || []}
           showBranding={currentBot?.chatBot?.showBranding ?? true}
+          botMode={currentBot?.chatBot?.botMode || 'both'}
           chats={onChats}
           register={register}
           onChat={onStartChatting}

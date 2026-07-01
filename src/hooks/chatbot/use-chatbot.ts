@@ -39,6 +39,7 @@ export const useChatBot = () => {
           starterPrompts: string[]
           showBranding: boolean
           helpdesk: boolean
+          botMode?: string
         } | null
         helpdesk: {
           id: string
@@ -312,6 +313,8 @@ export const useChatBot = () => {
           content: chatbot.chatBot?.welcomeMessage!,
         },
       ])
+      // Chat-only bots never speak; voice/both default to speaking on.
+      setVoiceEnabled(chatbot.chatBot?.botMode !== 'chat')
       setCurrentBot(chatbot)
       setLoading(false)
     }

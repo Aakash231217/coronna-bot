@@ -4,8 +4,14 @@ import { onUpdateWidgetSettings } from '@/actions/settings'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/components/ui/use-toast'
-import { Settings2, Loader2 } from 'lucide-react'
+import { Settings2, Loader2, MessageSquare, Mic, Sparkles } from 'lucide-react'
 import React, { useState, useTransition } from 'react'
+
+const BOT_MODE_OPTIONS = [
+  { value: 'chat', label: 'Chat only', description: 'Text chat widget. No microphone or spoken replies.', icon: MessageSquare },
+  { value: 'voice', label: 'Voice only', description: 'Voice-first: visitors speak and hear spoken replies.', icon: Mic },
+  { value: 'both', label: 'Chat + Voice', description: 'Full experience — visitors can type or talk.', icon: Sparkles },
+]
 
 const BEHAVIOR_OPTIONS = [
   { value: 'sales', label: 'Sales', description: 'Focuses on converting visitors into customers' },
@@ -23,6 +29,7 @@ type WidgetCustomizationPanelProps = {
     starterPrompts?: string[]
     showBranding?: boolean
     behaviorMode?: string
+    botMode?: string
   } | null
 }
 
@@ -32,6 +39,7 @@ const WidgetCustomizationPanel = ({ domainId, chatBot }: WidgetCustomizationPane
   const [widgetTheme, setWidgetTheme] = useState(chatBot?.widgetTheme || 'light')
   const [showBranding, setShowBranding] = useState(chatBot?.showBranding ?? true)
   const [behaviorMode, setBehaviorMode] = useState(chatBot?.behaviorMode || 'sales')
+  const [botMode, setBotMode] = useState(chatBot?.botMode || 'both')
   const [starterPrompts, setStarterPrompts] = useState<string[]>(
     chatBot?.starterPrompts?.length
       ? chatBot.starterPrompts
@@ -53,6 +61,7 @@ const WidgetCustomizationPanel = ({ domainId, chatBot }: WidgetCustomizationPane
         showBranding,
         starterPrompts,
         behaviorMode,
+        botMode,
       })
       toast({ title: response.status === 200 ? 'Saved' : 'Error', description: response.message })
     })
@@ -69,6 +78,34 @@ const WidgetCustomizationPanel = ({ domainId, chatBot }: WidgetCustomizationPane
           <CardDescription className="mt-1">
             Configure launcher placement, size, starter questions and branding before publishing.
           </CardDescription>
+        </div>
+
+        <div className="grid gap-2">
+          <p className="text-sm font-semibold text-gravel">Bot type</p>
+          <p className="text-xs text-muted-foreground">
+            Choose what visitors get on your website — a chat widget, a voice bot, or both.
+          </p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {BOT_MODE_OPTIONS.map((opt) => {
+              const Icon = opt.icon
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setBotMode(opt.value)}
+                  className={`flex flex-col gap-1 rounded-xl border p-3 text-left text-sm transition ${
+                    botMode === opt.value
+                      ? 'border-orange bg-orange/10 font-semibold text-orange'
+                      : 'border-border bg-white text-gravel hover:border-orange/50'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="block font-medium">{opt.label}</span>
+                  <span className="block text-xs text-muted-foreground">{opt.description}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
