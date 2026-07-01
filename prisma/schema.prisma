@@ -111,6 +111,7 @@ model ChatBot {
   helpdesk       Boolean @default(false)
   behaviorMode   String  @default("sales")
   botMode        String  @default("both") // "chat" | "voice" | "both"
+  voiceId        String  @default("9BWtsMINqrJLrRacOk9x") // ElevenLabs voice
   Domain         Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
   domainId       String? @unique @db.Uuid
 }

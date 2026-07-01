@@ -40,6 +40,7 @@ export const useChatBot = () => {
           showBranding: boolean
           helpdesk: boolean
           botMode?: string
+          voiceId?: string
         } | null
         helpdesk: {
           id: string
@@ -139,7 +140,10 @@ export const useChatBot = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: cleaned }),
+        body: JSON.stringify({
+          text: cleaned,
+          voiceId: currentBot?.chatBot?.voiceId,
+        }),
       })
 
       if (!response.ok) {

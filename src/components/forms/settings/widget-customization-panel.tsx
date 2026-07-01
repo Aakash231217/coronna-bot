@@ -4,8 +4,9 @@ import { onUpdateWidgetSettings } from '@/actions/settings'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/components/ui/use-toast'
-import { Settings2, Loader2, MessageSquare, Mic, Sparkles } from 'lucide-react'
-import React, { useState, useTransition } from 'react'
+import { Settings2, Loader2, MessageSquare, Mic, Sparkles, Play, Volume2 } from 'lucide-react'
+import React, { useRef, useState, useTransition } from 'react'
+import { BOT_VOICES, DEFAULT_VOICE_ID } from '@/constants/voices'
 
 const BOT_MODE_OPTIONS = [
   { value: 'chat', label: 'Chat only', description: 'Text chat widget. No microphone or spoken replies.', icon: MessageSquare },
@@ -30,6 +31,7 @@ type WidgetCustomizationPanelProps = {
     showBranding?: boolean
     behaviorMode?: string
     botMode?: string
+    voiceId?: string
   } | null
 }
 
@@ -40,13 +42,45 @@ const WidgetCustomizationPanel = ({ domainId, chatBot }: WidgetCustomizationPane
   const [showBranding, setShowBranding] = useState(chatBot?.showBranding ?? true)
   const [behaviorMode, setBehaviorMode] = useState(chatBot?.behaviorMode || 'sales')
   const [botMode, setBotMode] = useState(chatBot?.botMode || 'both')
+  const [voiceId, setVoiceId] = useState(chatBot?.voiceId || DEFAULT_VOICE_ID)
+  const [previewing, setPreviewing] = useState<string | null>(null)
   const [starterPrompts, setStarterPrompts] = useState<string[]>(
     chatBot?.starterPrompts?.length
       ? chatBot.starterPrompts
       : ['What services do you offer?', 'Can I book an appointment?', 'Can I talk to your team?']
   )
   const [isPending, startTransition] = useTransition()
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const { toast } = useToast()
+
+  const onPreviewVoice = async (id: string) => {
+    try {
+      audioRef.current?.pause()
+      setPreviewing(id)
+      const res = await fetch('/api/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: 'Hi! This is how your AI assistant will sound.',
+          voiceId: id,
+        }),
+      })
+      if (res.status === 204) {
+        toast({ title: 'Voice preview unavailable', description: 'Add ELEVENLABS_API_KEY to enable voice.' })
+        setPreviewing(null)
+        return
+      }
+      if (!res.ok) throw new Error('preview failed')
+      const audio = new Audio(URL.createObjectURL(await res.blob()))
+      audioRef.current = audio
+      audio.onended = () => setPreviewing(null)
+      audio.onerror = () => setPreviewing(null)
+      await audio.play()
+    } catch {
+      toast({ title: 'Error', description: 'Could not play voice preview.' })
+      setPreviewing(null)
+    }
+  }
 
   const updatePrompt = (index: number, value: string) => {
     setStarterPrompts((prev) => prev.map((prompt, promptIndex) => (promptIndex === index ? value : prompt)))
@@ -62,6 +96,7 @@ const WidgetCustomizationPanel = ({ domainId, chatBot }: WidgetCustomizationPane
         starterPrompts,
         behaviorMode,
         botMode,
+        voiceId,
       })
       toast({ title: response.status === 200 ? 'Saved' : 'Error', description: response.message })
     })
@@ -107,6 +142,51 @@ const WidgetCustomizationPanel = ({ domainId, chatBot }: WidgetCustomizationPane
             })}
           </div>
         </div>
+
+        {botMode !== 'chat' && (
+          <div className="grid gap-2">
+            <p className="flex items-center gap-2 text-sm font-semibold text-gravel">
+              <Volume2 className="h-4 w-4 text-orange" />
+              Bot voice
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Pick the voice your bot speaks with. Press play to hear a sample.
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {BOT_VOICES.map((voice) => (
+                <div
+                  key={voice.id}
+                  className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-left text-sm transition ${
+                    voiceId === voice.id
+                      ? 'border-orange bg-orange/10 text-orange'
+                      : 'border-border bg-white text-gravel hover:border-orange/50'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setVoiceId(voice.id)}
+                    className="flex-1 text-left"
+                  >
+                    <span className="block font-medium">{voice.label}</span>
+                    <span className="block text-xs text-muted-foreground">{voice.description}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onPreviewVoice(voice.id)}
+                    title="Play sample"
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-white text-gravel hover:border-orange"
+                  >
+                    {previewing === voice.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Play className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2 text-sm font-medium text-gravel">

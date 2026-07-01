@@ -226,6 +226,7 @@ export const onGetCurrentDomainInfo = async (domain: string) => {
                 showBranding: true,
                 behaviorMode: true,
                 botMode: true,
+                voiceId: true,
               },
             },
           },
@@ -754,6 +755,7 @@ export const onUpdateWidgetSettings = async (
     starterPrompts: string[]
     behaviorMode?: string
     botMode?: string
+    voiceId?: string
   }
 ) => {
   try {
@@ -767,6 +769,7 @@ export const onUpdateWidgetSettings = async (
         starterPrompts: settings.starterPrompts.filter(Boolean).slice(0, 4),
         ...(settings.behaviorMode ? { behaviorMode: settings.behaviorMode } : {}),
         ...(settings.botMode ? { botMode: settings.botMode } : {}),
+        ...(settings.voiceId ? { voiceId: settings.voiceId } : {}),
       },
     })
 

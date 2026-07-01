@@ -91,6 +91,7 @@ export const onGetCurrentChatBot = async (id: string) => {
             helpdesk: true,
             behaviorMode: true,
             botMode: true,
+            voiceId: true,
           },
         },
       },
