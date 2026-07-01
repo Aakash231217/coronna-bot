@@ -12,7 +12,7 @@ import Bubble from './bubble'
 import { Responding } from './responding'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
-import { Mic, MicOff, Paperclip, Send, Volume2, VolumeX } from 'lucide-react'
+import { Mic, MicOff, Paperclip, Send, Volume2, VolumeX, X } from 'lucide-react'
 import { Label } from '../ui/label'
 import { CardDescription, CardTitle } from '../ui/card'
 import Accordion from '../accordian'
@@ -60,6 +60,8 @@ type Props = {
   speechSupported: boolean
   onToggleListening(): void
   botMode?: string
+  isMobile?: boolean
+  onClose?(): void
 }
 
 export const BotWindow = forwardRef<HTMLDivElement, Props>(
@@ -87,13 +89,22 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
       speechSupported,
       onToggleListening,
       botMode = 'both',
+      isMobile = false,
+      onClose,
     },
     ref
   ) => {
     console.log(errors)
     const voiceAllowed = botMode !== 'chat'
+    // On mobile the widget fills the screen; on desktop it's a floating card.
+    const shellClasses = isMobile
+      ? 'h-[100dvh] w-screen rounded-none'
+      : 'mr-6 h-[560px] w-[360px] rounded-3xl shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)]'
+    // Chat scroll area: fixed on desktop, fills remaining space on mobile.
+    const chatAreaClasses = isMobile ? 'h-[calc(100dvh_-_250px)]' : 'h-[310px]'
+    const helpdeskAreaClasses = isMobile ? 'h-[calc(100dvh_-_150px)]' : 'h-[485px]'
     return (
-      <div className={`mr-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-3xl border border-border shadow-[0_30px_60px_-30px_rgba(91,91,214,0.35)] ${widgetTheme === 'dark' ? 'bg-[#111827] text-white' : 'bg-card'}`}>
+      <div className={`flex flex-col overflow-hidden border border-border ${shellClasses} ${widgetTheme === 'dark' ? 'bg-[#111827] text-white' : 'bg-card'}`}>
         <div className="flex items-center justify-between gap-3 border-b border-border bg-brand-gradient px-5 py-4 text-white">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 overflow-hidden rounded-full ring-2 ring-white/40">
@@ -114,22 +125,34 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
               )}
             </div>
           </div>
-          {voiceAllowed && (
-            <button
-              type="button"
-              onClick={onToggleVoice}
-              className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
-              title={voiceEnabled ? 'Mute voice replies' : 'Enable voice replies'}
-            >
-              {voiceEnabled ? (
-                <Volume2
-                  className={`h-4 w-4 ${speaking ? 'animate-pulse' : ''}`}
-                />
-              ) : (
-                <VolumeX className="h-4 w-4" />
-              )}
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {voiceAllowed && (
+              <button
+                type="button"
+                onClick={onToggleVoice}
+                className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                title={voiceEnabled ? 'Mute voice replies' : 'Enable voice replies'}
+              >
+                {voiceEnabled ? (
+                  <Volume2
+                    className={`h-4 w-4 ${speaking ? 'animate-pulse' : ''}`}
+                  />
+                ) : (
+                  <VolumeX className="h-4 w-4" />
+                )}
+              </button>
+            )}
+            {isMobile && onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                title="Close chat"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
         <TabsMenu
           triggers={BOT_TABS_MENU}
@@ -143,7 +166,7 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
                   background: theme || '',
                   color: textColor || '',
                 }}
-                className="px-3 flex h-[310px] flex-col py-5 gap-3 chat-window overflow-y-auto"
+                className={`px-3 flex ${chatAreaClasses} flex-col py-5 gap-3 chat-window overflow-y-auto`}
                 ref={ref}
               >
                 {chats.map((chat, key) => (
@@ -208,7 +231,7 @@ export const BotWindow = forwardRef<HTMLDivElement, Props>(
           </TabsContent>
 
           <TabsContent value="helpdesk">
-            <div className="h-[485px] overflow-y-auto overflow-x-hidden p-4 flex flex-col gap-4">
+            <div className={`${helpdeskAreaClasses} overflow-y-auto overflow-x-hidden p-4 flex flex-col gap-4`}>
               <div>
                 <CardTitle>Help Desk</CardTitle>
                 <CardDescription>

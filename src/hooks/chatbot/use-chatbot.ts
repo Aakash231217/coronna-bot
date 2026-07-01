@@ -70,6 +70,9 @@ export const useChatBot = () => {
   const [listening, setListening] = useState<boolean>(false)
   const [speechSupported, setSpeechSupported] = useState<boolean>(false)
   const [modePicked, setModePicked] = useState<boolean>(false)
+  // Detect a real mobile device. Inside the iframe window.innerWidth is the
+  // iframe's own size, so we rely on the physical screen width instead.
+  const [isMobile, setIsMobile] = useState<boolean>(false)
 
   const onPickMode = (voiceAndChat: boolean) => {
     setVoiceEnabled(voiceAndChat)
@@ -270,15 +273,28 @@ export const useChatBot = () => {
   }, [onChats, messageWindowRef])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    const check = () =>
+      setIsMobile((window.screen?.width || window.innerWidth) <= 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  useEffect(() => {
     const launcherSize = currentBot?.chatBot?.launcherSize || 72
+    const mobileOpen = isMobile && botOpened
     postToParent(
       JSON.stringify({
         width: botOpened ? 420 : launcherSize,
         height: botOpened ? 640 : launcherSize,
-        position: currentBot?.chatBot?.launcherPosition || 'right',
+        // "full" tells the host page to expand the iframe to the whole screen.
+        position: mobileOpen
+          ? 'full'
+          : currentBot?.chatBot?.launcherPosition || 'right',
       })
     )
-  }, [botOpened, currentBot?.chatBot?.launcherPosition, currentBot?.chatBot?.launcherSize])
+  }, [botOpened, isMobile, currentBot?.chatBot?.launcherPosition, currentBot?.chatBot?.launcherSize])
 
   // Auto-greet: speak the welcome message aloud every time the chat is opened.
   // Opening the widget is a user gesture, so browsers allow audio playback here.
@@ -466,6 +482,7 @@ export const useChatBot = () => {
     onToggleListening,
     modePicked,
     onPickMode,
+    isMobile,
   }
 }
 

@@ -80,19 +80,46 @@ const CodeSnippet = ({ id }: Props) => {
       }
     });
 
+    const applyLayout = (dimensions) => {
+      if (dimensions.position === 'full') {
+        // Mobile: let the widget take over the whole screen.
+        iframe.style.top = '0';
+        iframe.style.left = '0';
+        iframe.style.right = 'auto';
+        iframe.style.bottom = 'auto';
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.width = String(window.innerWidth);
+        iframe.height = String(window.innerHeight);
+      } else {
+        // Desktop: floating card / launcher in the corner.
+        iframe.style.top = 'auto';
+        iframe.style.bottom = '50px';
+        iframe.style.width = dimensions.width + 'px';
+        iframe.style.height = dimensions.height + 'px';
+        iframe.width = dimensions.width;
+        iframe.height = dimensions.height;
+        if (dimensions.position === 'left') {
+          iframe.style.left = '50px';
+          iframe.style.right = 'auto';
+        } else {
+          iframe.style.right = '50px';
+          iframe.style.left = 'auto';
+        }
+      }
+    };
+
+    let lastDimensions = null;
     window.addEventListener("message", (e) => {
       if (e.origin !== "${baseUrl}") return null;
-      let dimensions = JSON.parse(e.data);
-      iframe.width = dimensions.width;
-      iframe.height = dimensions.height;
-      if (dimensions.position === 'left') {
-        iframe.style.left = '50px';
-        iframe.style.right = 'auto';
-      } else {
-        iframe.style.right = '50px';
-        iframe.style.left = 'auto';
-      }
+      lastDimensions = JSON.parse(e.data);
+      applyLayout(lastDimensions);
       iframe.contentWindow.postMessage("${id}", "${baseUrl}");
+    });
+
+    // Keep a full-screen (mobile) widget correct on rotate / resize.
+    window.addEventListener('resize', () => {
+      if (lastDimensions && lastDimensions.position === 'full') applyLayout(lastDimensions);
     });
   }
 

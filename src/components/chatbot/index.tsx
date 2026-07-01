@@ -1,6 +1,6 @@
 'use client'
 import { useChatBot } from '@/hooks/chatbot/use-chatbot'
-import React from 'react'
+import React, { useState } from 'react'
 import { BotWindow } from './window'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
@@ -28,10 +28,21 @@ const AiChatBot = (props: Props) => {
     listening,
     speechSupported,
     onToggleListening,
+    isMobile,
   } = useChatBot()
 
+  const [iconError, setIconError] = useState(false)
+  const launcherSize = currentBot?.chatBot?.launcherSize || 72
+  // On mobile the open widget fills the screen, so the floating launcher is hidden.
+  const fullScreen = isMobile && botOpened
+
   return (
-    <div className="h-screen flex flex-col justify-end items-end gap-4">
+    <div
+      className={cn(
+        'flex flex-col gap-4',
+        fullScreen ? 'h-[100dvh] w-screen' : 'h-screen justify-end items-end'
+      )}
+    >
       {botOpened && (
         <BotWindow
           errors={errors}
@@ -47,6 +58,8 @@ const AiChatBot = (props: Props) => {
           starterPrompts={currentBot?.chatBot?.starterPrompts || []}
           showBranding={currentBot?.chatBot?.showBranding ?? true}
           botMode={currentBot?.chatBot?.botMode || 'both'}
+          isMobile={isMobile}
+          onClose={onOpenChatBot}
           chats={onChats}
           register={register}
           onChat={onStartChatting}
@@ -59,30 +72,29 @@ const AiChatBot = (props: Props) => {
           onToggleListening={onToggleListening}
         />
       )}
-      <div
-        className={cn(
-          'rounded-full relative cursor-pointer shadow-md w-[72px] h-[72px] flex items-center justify-center bg-grandis',
-          loading ? 'invisible' : 'visible'
-        )}
-        onClick={onOpenChatBot}
-        style={{
-          width: currentBot?.chatBot?.launcherSize || 72,
-          height: currentBot?.chatBot?.launcherSize || 72,
-        }}
-      >
-        {currentBot?.chatBot?.icon ? (
-          <Image
-            src={`https://ucarecdn.com/${currentBot.chatBot.icon}/`}
-            alt="bot"
-            fill
-          />
-        ) : (
-          <BotAvatar3D
-            size={currentBot?.chatBot?.launcherSize || 72}
-            speaking={speaking}
-          />
-        )}
-      </div>
+      {!fullScreen && (
+        <div
+          className={cn(
+            'rounded-full relative overflow-hidden cursor-pointer shadow-md flex items-center justify-center bg-grandis',
+            loading ? 'invisible' : 'visible'
+          )}
+          onClick={onOpenChatBot}
+          style={{ width: launcherSize, height: launcherSize }}
+        >
+          {currentBot?.chatBot?.icon && !iconError ? (
+            <Image
+              src={`https://ucarecdn.com/${currentBot.chatBot.icon}/`}
+              alt="bot"
+              fill
+              sizes="72px"
+              className="object-cover"
+              onError={() => setIconError(true)}
+            />
+          ) : (
+            <BotAvatar3D size={launcherSize} speaking={speaking} />
+          )}
+        </div>
+      )}
     </div>
   )
 }
