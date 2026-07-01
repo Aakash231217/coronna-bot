@@ -53,9 +53,14 @@ export const useChatBot = () => {
   const messageWindowRef = useRef<HTMLDivElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const recognitionRef = useRef<any>(null)
+  // True once the visitor has actually engaged (opened the bot or sent a message).
+  // Used to suppress the proactive "are you stuck?" nudge — no point nagging
+  // someone who's already talking to the bot.
+  const engagedRef = useRef<boolean>(false)
   const [botOpened, setBotOpened] = useState<boolean>(false)
   const onOpenChatBot = () =>
     setBotOpened((prev) => {
+      if (!prev) engagedRef.current = true // user opened the bot = engaged
       if (prev) setModePicked(false) // reset mode picker when closing
       return !prev
     })
@@ -334,6 +339,8 @@ export const useChatBot = () => {
         try {
           const payload = JSON.parse(data)
           if (payload?.type === 'bot:proactive') {
+            // Already chatting/opened the bot? Don't interrupt with a nudge.
+            if (engagedRef.current) return
             const reason: string = payload.reason || 'idle'
             const path: string = payload.path || ''
             const proactiveMsg =
@@ -360,6 +367,7 @@ export const useChatBot = () => {
 
   const onStartChatting = handleSubmit(async (values) => {
     console.log('ALL VALUES', values)
+    engagedRef.current = true // sending a message counts as engaged
 
     if (values.image?.length) {
       console.log('IMAGE fROM ', values.image[0])
