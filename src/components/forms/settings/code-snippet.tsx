@@ -15,7 +15,9 @@ const CodeSnippet = ({ id }: Props) => {
       /\/$/,
       ''
     )
-  let snippet = `
+  let snippet = `<script>
+(function () {
+  function initCorinnaBot() {
     const iframe = document.createElement("iframe");
 
     const iframeStyles = (styleString) => {
@@ -61,7 +63,7 @@ const CodeSnippet = ({ id }: Props) => {
             path: window.location.pathname,
             title: document.title,
           }),
-          "${baseUrl}/"
+          "${baseUrl}"
         );
       } catch (e) {}
     };
@@ -90,15 +92,24 @@ const CodeSnippet = ({ id }: Props) => {
         iframe.style.right = '50px';
         iframe.style.left = 'auto';
       }
-      iframe.contentWindow.postMessage("${id}", "${baseUrl}/");
+      iframe.contentWindow.postMessage("${id}", "${baseUrl}");
     });
-        `
+  }
+
+  // Wait for the DOM so document.body exists (safe in <head> or <body>).
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCorinnaBot);
+  } else {
+    initCorinnaBot();
+  }
+})();
+</script>`
 
   return (
     <div className="mt-10 flex flex-col gap-5 items-start">
       <Section
         label="Code snippet"
-        message="Copy and paste this code snippet into the header tag of your website"
+        message="Copy and paste this snippet into your website's HTML — inside <head> or just before the closing </body> tag. Works the same for chat, voice, or both."
       />
       <div className="bg-cream px-10 rounded-lg inline-block relative">
         <Copy
