@@ -57,7 +57,6 @@ export const onGetDomainChatRooms = async (id: string) => {
       },
       select: {
         customer: {
-          where: { email: { not: null } },
           select: {
             email: true,
             chatRoom: {

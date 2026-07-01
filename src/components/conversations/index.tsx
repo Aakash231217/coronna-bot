@@ -32,6 +32,35 @@ const ConversationMenu = ({ domains }: Props) => {
     }
   }, [domains])
 
+  const renderRooms = (
+    rooms: typeof chatRooms,
+    emptyLabel: string
+  ) => (
+    <div className="flex flex-col">
+      <Loader loading={loading}>
+        {rooms.length ? (
+          rooms.map((room) => (
+            <ChatCard
+              seen={room.chatRoom[0].message[0]?.seen}
+              id={room.chatRoom[0].id}
+              onChat={() => onGetActiveChatMessages(room.chatRoom[0].id)}
+              createdAt={room.chatRoom[0].message[0]?.createdAt}
+              key={room.chatRoom[0].id}
+              title={room.email || 'Anonymous visitor'}
+              description={room.chatRoom[0].message[0]?.message}
+            />
+          ))
+        ) : (
+          <CardDescription className="p-3">{emptyLabel}</CardDescription>
+        )}
+      </Loader>
+    </div>
+  )
+
+  const unreadRooms = chatRooms.filter(
+    (room) => room.chatRoom[0]?.message[0] && !room.chatRoom[0].message[0].seen
+  )
+
   return (
     <div className="py-3 px-0">
       <TabsMenu triggers={TABS_MENU}>
@@ -40,32 +69,14 @@ const ConversationMenu = ({ domains }: Props) => {
             domains={domains}
             register={register}
           />
-          <div className="flex flex-col">
-            <Loader loading={loading}>
-              {chatRooms.length ? (
-                chatRooms.map((room) => (
-                  <ChatCard
-                    seen={room.chatRoom[0].message[0]?.seen}
-                    id={room.chatRoom[0].id}
-                    onChat={() => onGetActiveChatMessages(room.chatRoom[0].id)}
-                    createdAt={room.chatRoom[0].message[0]?.createdAt}
-                    key={room.chatRoom[0].id}
-                    title={room.email!}
-                    description={room.chatRoom[0].message[0]?.message}
-                  />
-                ))
-              ) : (
-                <CardDescription>No chats for you domain</CardDescription>
-              )}
-            </Loader>
-          </div>
+          {renderRooms(unreadRooms, 'No unread chats.')}
         </TabsContent>
         <TabsContent value="all">
-          <Separator
-            orientation="horizontal"
-            className="mt-5"
+          <ConversationSearch
+            domains={domains}
+            register={register}
           />
-          all
+          {renderRooms(chatRooms, 'No chats for your domain yet.')}
         </TabsContent>
         <TabsContent value="expired">
           <Separator

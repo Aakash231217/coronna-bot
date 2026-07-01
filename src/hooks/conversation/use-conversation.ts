@@ -43,7 +43,11 @@ export const useConversation = () => {
     try {
       const rooms = await onGetDomainChatRooms(domainId)
       if (rooms) {
-        setChatRooms(rooms.customer.filter((c) => c.chatRoom.length > 0))
+        // Only show customers whose chat room actually has messages —
+        // opening the widget creates an empty anonymous room we don't want to list.
+        setChatRooms(
+          rooms.customer.filter((c) => (c.chatRoom[0]?.message.length ?? 0) > 0)
+        )
       }
     } catch (error) {
       console.log(error)
